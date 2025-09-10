@@ -16,17 +16,19 @@ class BeneficiarioController extends Controller
             $query->where('curp', 'like', '%' . $request->curp . '%');
         }
 
+        $query->orderBy('created_at', 'desc');
+
         if ($request->ajax()) {
             $beneficiarios = $query->get();
             return response()->json(['data' => $beneficiarios]);
         }
 
-        $beneficiarios = $query->paginate(10);
+        $beneficiarios = $query->paginate(20);
 
         return view('beneficiarios', compact('beneficiarios'));
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(Request $request)
     {
         $request->validate([
             'nombres' => 'required|string|max:100',
@@ -36,11 +38,16 @@ class BeneficiarioController extends Controller
 
         $beneficiario = Beneficiario::create($request->all());
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Beneficiario creado correctamente.',
-            'data' => $beneficiario
-        ]);
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Beneficiario creado correctamente.',
+                'data' => $beneficiario
+            ]);
+        }
+
+        return redirect()->route('beneficiarios')
+            ->with('success', 'Beneficiario creado correctamente.');
     }
 
     public function show(Beneficiario $beneficiario): JsonResponse
@@ -50,10 +57,13 @@ class BeneficiarioController extends Controller
 
     public function edit(Beneficiario $beneficiario): JsonResponse
     {
-        return response()->json(['data' => $beneficiario]);
+        return response()->json([
+            'success' => true,
+            'data' => $beneficiario
+        ]);
     }
 
-    public function update(Request $request, Beneficiario $beneficiario): JsonResponse
+    public function update(Request $request, Beneficiario $beneficiario)
     {
         $request->validate([
             'nombres' => 'required|string|max:100',
@@ -63,11 +73,30 @@ class BeneficiarioController extends Controller
 
         $beneficiario->update($request->all());
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Beneficiario actualizado correctamente.',
-            'data' => $beneficiario
-        ]);
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Beneficiario actualizado correctamente.',
+                'data' => $beneficiario
+            ]);
+        }
+
+        return redirect()->route('beneficiarios')
+            ->with('success', 'Beneficiario actualizado correctamente.');
     }
 
+    public function destroy(Request $request, Beneficiario $beneficiario)
+    {
+        $beneficiario->delete();
+
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Beneficiario eliminado correctamente.'
+            ]);
+        }
+
+        return redirect()->route('beneficiarios')
+            ->with('success', 'Beneficiario eliminado correctamente.');
+    }
 }

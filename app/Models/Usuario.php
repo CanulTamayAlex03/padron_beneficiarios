@@ -3,13 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
 
 class Usuario extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasRoles;
 
     protected $table = 'usuarios';
     protected $primaryKey = 'usuario_id';
@@ -17,7 +17,6 @@ class Usuario extends Authenticatable
     protected $fillable = [
         'email',
         'password',
-        'rol_id',
         'estatus'
     ];
 
@@ -31,13 +30,13 @@ class Usuario extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
+    public function getKey()
+    {
+        return $this->usuario_id;
+    }
+
     public function getAuthPassword()
     {
         return $this->password;
-    }
-
-    public function rol()
-    {
-        return $this->belongsTo(Rol::class, 'rol_id', 'rol_id');
     }
 }

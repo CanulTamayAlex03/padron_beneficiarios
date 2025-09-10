@@ -3,31 +3,33 @@
 @section('content')
 <div class="container">
     <div class="row justify-content-center">
-        <div class="col-md-10">
+        <div class="col-md-12">
             <div class="card">
                 <div class="card-header">
                     <div class="d-flex justify-content-between align-items-center">
                         <h2 class="mb-0">Importar Beneficiarios</h2>
+                        @can('exportar beneficiarios')
                         <a href="{{ route('administrador.exportar_beneficiarios') }}" class="btn btn-success btn-sm">
-                            <i class="bi bi-download"></i> Descargar Plantilla
+                            <i class="bi bi-upload"></i> Exportar Beneficiarios
                         </a>
+                        @endcan
                     </div>
                 </div>
 
                 <div class="card-body">
                     <!-- Mensajes de alerta -->
                     @if(session('success'))
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            <strong>¡Éxito!</strong> {{ session('success') }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <strong>¡Éxito!</strong> {{ session('success') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
                     @endif
 
                     @if(session('error'))
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <strong>Error:</strong> {{ session('error') }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <strong>Error:</strong> {{ session('error') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
                     @endif
 
                     <!-- Formulario de importación -->
@@ -42,20 +44,22 @@
 
                     <form action="{{ route('administrador.importar_beneficiarios.process') }}" method="POST" enctype="multipart/form-data" class="mt-4">
                         @csrf
-                        
+
                         <div class="mb-3">
                             <label for="file" class="form-label">Seleccionar archivo:</label>
                             <input type="file" class="form-control @error('file') is-invalid @enderror" id="file" name="file" required accept=".xlsx,.xls,.csv">
                             @error('file')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                            <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                             <div class="form-text">Formatos permitidos: .xlsx, .xls, .csv</div>
                         </div>
 
                         <div class="d-grid">
+                            @can('importar beneficiarios')
                             <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-upload"></i> Importar Beneficiarios
+                                <i class="bi bi-download"></i> Importar Beneficiarios
                             </button>
+                            @endcan
                         </div>
                     </form>
 
@@ -68,24 +72,24 @@
                                 <thead class="table-success">
                                     <tr>
                                         @foreach(array_keys(session('importedData')[0]) as $header)
-                                            <th>{{ ucfirst($header) }}</th>
+                                        <th>{{ ucfirst($header) }}</th>
                                         @endforeach
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach(session('importedData') as $index => $row)
-                                        @if($index > 0) <!-- Saltar encabezados -->
-                                        <tr>
-                                            @foreach($row as $value)
-                                                <td>{{ $value }}</td>
-                                            @endforeach
-                                        </tr>
-                                        @endif
+                                    @if($index > 0) <!-- Saltar encabezados -->
+                                    <tr>
+                                        @foreach($row as $value)
+                                        <td>{{ $value }}</td>
+                                        @endforeach
+                                    </tr>
+                                    @endif
                                     @endforeach
                                 </tbody>
                             </table>
                         </div>
-                        
+
                         <div class="mt-3">
                             <a href="{{ route('beneficiarios') }}" class="btn btn-outline-primary">
                                 <i class="bi bi-list"></i> Ver todos los beneficiarios
@@ -99,9 +103,9 @@
                     <div class="mt-5">
                         <h4 class="mb-3">👥 Beneficiarios Existentes</h4>
                         @php
-                            $beneficiarios = App\Models\Beneficiario::latest()->take(5)->get();
+                        $beneficiarios = App\Models\Beneficiario::latest()->take(5)->get();
                         @endphp
-                        
+
                         @if($beneficiarios->count() > 0)
                         <div class="table-responsive">
                             <table class="table table-striped table-bordered">
@@ -125,7 +129,7 @@
                                 </tbody>
                             </table>
                         </div>
-                        
+
                         <div class="mt-3">
                             <a href="{{ route('beneficiarios') }}" class="btn btn-outline-primary">
                                 <i class="bi bi-eye"></i> Ver todos los registros
@@ -149,23 +153,24 @@
 
 <style>
     .table th {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #1b1b1bff 0%, #1b1b1bff 100%);
         color: white;
         font-weight: 600;
     }
-    
+
     .card-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #1b1b1bff 0%, #1b1b1bff 100%);
         color: white;
     }
-    
+
     .btn-primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #1e62c9ff 0%, #1e62c9ff 100%);
         border: none;
     }
-    
+
     .btn-primary:hover {
-        background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+        background: linear-gradient(135deg, #2f6bc5ff 0%, #2f6bc5ff 100%);
     }
+
 </style>
 @endsection

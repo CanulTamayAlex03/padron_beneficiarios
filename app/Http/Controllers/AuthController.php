@@ -22,12 +22,20 @@ class AuthController extends Controller
 
         $usuario = Usuario::where('email', $credentials['email'])->first();
 
-        if (!$usuario || $usuario->estatus != 1) {
+        if (!$usuario) {
             return back()->withErrors([
-                'email' => 'Las credenciales no son correctas o la cuenta está inactiva.',
+                'email' => 'Las credenciales no son correctas.',
             ])->withInput($request->only('email'));
         }
 
+        // Verificar si el usuario está inactivo
+        if ($usuario->estatus != 1) {
+            return back()->withErrors([
+                'email' => 'Su cuenta está inactiva. Contacte al administrador.',
+            ])->withInput($request->only('email'));
+        }
+
+        // Intentar autenticación
         if (Auth::guard('web')->attempt($credentials, $request->filled('remember'))) {
             $request->session()->regenerate();
             return redirect()->intended(route('beneficiarios'));

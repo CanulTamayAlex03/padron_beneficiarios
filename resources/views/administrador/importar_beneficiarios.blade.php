@@ -113,7 +113,7 @@
                                     <tr>
                                         <th>ID</th>
                                         <th>Nombres</th>
-                                        <th>Apellidos</th>
+                                        <th>CURP</th>
                                         <th>Fecha Registro</th>
                                     </tr>
                                 </thead>
@@ -122,7 +122,7 @@
                                     <tr>
                                         <td>{{ $beneficiario->id }}</td>
                                         <td>{{ $beneficiario->nombres }}</td>
-                                        <td>{{ $beneficiario->apellidos }}</td>
+                                        <td>{{ $beneficiario->curp }}</td>
                                         <td>{{ $beneficiario->created_at->format('d/m/Y') }}</td>
                                     </tr>
                                     @endforeach

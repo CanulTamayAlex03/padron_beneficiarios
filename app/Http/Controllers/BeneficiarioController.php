@@ -16,7 +16,7 @@ class BeneficiarioController extends Controller
             $query->where('curp', 'like', '%' . $request->curp . '%');
         }
 
-        $query->orderBy('created_at', 'desc');
+        $query->orderBy('id', 'desc');
 
         if ($request->ajax()) {
             $beneficiarios = $query->get();
@@ -31,9 +31,19 @@ class BeneficiarioController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nombres' => 'required|string|max:100',
-            'apellidos' => 'required|string|max:100',
-            'curp' => 'required|string|size:18|unique:beneficiarios,curp',
+            'nombres'          => 'required|string|max:100',
+            'primer_apellido'  => 'required|string|max:100',
+            'segundo_apellido' => 'nullable|string|max:100',
+            'curp'             => 'nullable|string|size:18|unique:beneficiarios,curp',
+            'fecha_nac'        => 'required|date',
+            'estado_nac'       => 'nullable|string|max:100',
+            'sexo'             => 'nullable|string|max:100',
+            'discapacidad'     => 'boolean',
+            'indigena'         => 'boolean',
+            'maya_hablante'    => 'boolean',
+            'afromexicano'     => 'boolean',
+            'estado_civil'     => 'nullable|string|max:100',
+            'ocupacion'        => 'nullable|string|max:100',
         ]);
 
         $beneficiario = Beneficiario::create($request->all());
@@ -42,7 +52,7 @@ class BeneficiarioController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Beneficiario creado correctamente.',
-                'data' => $beneficiario
+                'data'    => $beneficiario
             ]);
         }
 
@@ -50,25 +60,40 @@ class BeneficiarioController extends Controller
             ->with('success', 'Beneficiario creado correctamente.');
     }
 
-    public function show(Beneficiario $beneficiario): JsonResponse
-    {
-        return response()->json(['data' => $beneficiario]);
+    public function show(Beneficiario $beneficiario)
+{
+    if (request()->expectsJson()) {
+        return response()->json($beneficiario);
     }
+
+    return view('beneficiarios.show', compact('beneficiario'));
+}
+
 
     public function edit(Beneficiario $beneficiario): JsonResponse
     {
         return response()->json([
             'success' => true,
-            'data' => $beneficiario
+            'data'    => $beneficiario
         ]);
     }
 
     public function update(Request $request, Beneficiario $beneficiario)
     {
         $request->validate([
-            'nombres' => 'required|string|max:100',
-            'apellidos' => 'required|string|max:100',
-            'curp' => 'required|string|size:18|unique:beneficiarios,curp,' . $beneficiario->id,
+            'nombres'          => 'required|string|max:100',
+            'primer_apellido'  => 'required|string|max:100',
+            'segundo_apellido' => 'nullable|string|max:100',
+            'curp'             => 'nullable|string|size:18|unique:beneficiarios,curp,' . $beneficiario->id,
+            'fecha_nac'        => 'nullable|date',
+            'estado_nac'       => 'nullable|string|max:100',
+            'sexo'             => 'nullable|string|max:100',
+            'discapacidad'     => 'boolean',
+            'indigena'         => 'boolean',
+            'maya_hablante'    => 'boolean',
+            'afromexicano'     => 'boolean',
+            'estado_civil'     => 'nullable|string|max:100',
+            'ocupacion'        => 'nullable|string|max:100',
         ]);
 
         $beneficiario->update($request->all());
@@ -77,7 +102,7 @@ class BeneficiarioController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Beneficiario actualizado correctamente.',
-                'data' => $beneficiario
+                'data'    => $beneficiario
             ]);
         }
 

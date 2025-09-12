@@ -125,32 +125,38 @@
     </main>
 
     <style>
-        body{
+        body {
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
         }
+
         .sidebar {
             display: flex;
             flex-direction: column;
             height: 100vh;
         }
+
         .sidebar.collapsed .sidebar-footer button {
             font-size: 0;
             justify-content: center;
         }
+
         .sidebar.collapsed .sidebar-footer i {
             margin: 0;
         }
-        .sidebar-footer{
+
+        .sidebar-footer {
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             margin-bottom: 20px;
         }
     </style>
 
     <!-- ========== JavaScripts ========== -->
-    <!-- PRIMERO jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <!-- LUEGO Bootstrap -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="{{ asset('js/jquery-3.6.0.min.js') }}"></script>
+
+    <!-- Bootstrap (bundle incluye Popper) -->
+    <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
+
     <!-- FINALMENTE tu app.js -->
     <script src="{{ mix('js/app.js') }}"></script>
 

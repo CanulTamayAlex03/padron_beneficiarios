@@ -12,13 +12,28 @@ class Beneficiario extends Model
     protected $table = 'beneficiarios';
 
     protected $fillable = [
-        'nombres',
-        'apellidos',
         'curp',
+        'primer_apellido',
+        'segundo_apellido',
+        'nombres',
+        'fecha_nac',
+        'estado_nac',
+        'sexo',
+        'discapacidad',
+        'indigena',
+        'maya_hablante',
+        'afromexicano',
+        'estado_civil',
+        'ocupacion',
     ];
 
     protected $casts = [
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
+        'fecha_nac'     => 'date',
+        'discapacidad'  => 'boolean',
+        'indigena'      => 'boolean',
+        'maya_hablante' => 'boolean',
+        'afromexicano'  => 'boolean',
+        'created_at'    => 'datetime',
+        'updated_at'    => 'datetime',
     ];
 }

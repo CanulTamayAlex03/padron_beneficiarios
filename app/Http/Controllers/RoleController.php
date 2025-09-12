@@ -10,8 +10,8 @@ class RoleController extends Controller
 {
     public function index()
     {
-        $roles = Role::with('permissions')->orderBy('name')->get();
-        $permisos = Permission::orderBy('name')->get();
+        $roles = Role::with('permissions')->orderBy('id')->get();
+        $permisos = Permission::orderBy('id')->get();
 
         return view('administrador.roles_permisos', compact('roles', 'permisos'));
     }

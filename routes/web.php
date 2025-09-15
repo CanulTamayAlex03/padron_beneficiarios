@@ -17,12 +17,14 @@ Route::middleware('auth')->group(function () {
 
     // ================== BENEFICIARIOS ==================
     Route::middleware('permission:ver beneficiarios')->group(function () {
+        Route::get('/beneficiarios/check-curp', [BeneficiarioController::class, 'checkCurp'])
+        ->name('beneficiarios.check-curp');
         Route::get('/beneficiarios', [BeneficiarioController::class, 'index'])->name('beneficiarios');
         Route::get('/beneficiarios/{beneficiario}', [BeneficiarioController::class, 'show'])->name('beneficiarios.show');
         Route::get('/beneficiarios/{beneficiario}/edit', [BeneficiarioController::class, 'edit'])
             ->name('beneficiarios.edit');
     });
-
+    
     Route::post('/beneficiarios', [BeneficiarioController::class, 'store'])
         ->middleware('permission:crear beneficiarios')
         ->name('beneficiarios.store');

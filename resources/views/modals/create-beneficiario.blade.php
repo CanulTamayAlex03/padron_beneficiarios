@@ -15,6 +15,9 @@
                 @csrf
                 <div class="modal-body">
                     
+                    {{-- Contenedor para errores generales --}}
+                    <div id="modal-general-error" class="alert alert-danger d-none mb-3"></div>
+
                     {{-- Datos Personales --}}
                     <fieldset class="border rounded p-3 mb-3">
                         <legend class="float-none w-auto px-2">Datos Personales</legend>
@@ -41,14 +44,28 @@
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label for="create_curp" class="form-label">CURP</label>
-                                <input type="text" class="form-control" id="create_curp" name="curp" maxlength="18">
+                                <input type="text" class="form-control" id="create_curp" name="curp"
+                                    maxlength="18" oninput="validarCurp()"
+                                    placeholder="Ej: ABCDEFGH0123456789">
                                 <div class="form-text">18 caracteres exactos (opcional)</div>
-                                <div id="curp-error" class="text-danger small d-none">La CURP debe tener exactamente 18 caracteres</div>
+                                <div id="curp-error" class="text-danger small d-none mt-1">
+                                    <i class="bi bi-exclamation-circle"></i> La CURP debe tener exactamente 18 caracteres
+                                </div>
+                                <div id="curp-status" class="small mt-1 d-none">
+                                    <i class="bi bi-check-circle"></i> <span></span>
+                                </div>
                             </div>
                             <div class="col-md-6">
                                 <label for="create_curp_confirm" class="form-label">Confirmar CURP</label>
-                                <input type="text" class="form-control" id="create_curp_confirm" name="curp_confirm" maxlength="18" oninput="validarConfirmacionCurp()">
-                                <div id="curp-confirm-error" class="text-danger small d-none">Las CURP no coinciden</div>
+                                <input type="text" class="form-control" id="create_curp_confirm"
+                                    name="curp_confirm" maxlength="18"
+                                    oninput="validarConfirmacionCurp()"
+                                    placeholder="Escriba la CURP nuevamente"
+                                    onpaste="return false;" oncopy="return false;" oncut="return false;">
+                                <div class="form-text">No se permite copiar/pegar en este campo</div>
+                                <div id="curp-confirm-error" class="text-danger small d-none mt-1">
+                                    <i class="bi bi-exclamation-circle"></i> <span></span>
+                                </div>
                             </div>
                         </div>
                     </fieldset>
@@ -65,7 +82,6 @@
                                 <label for="create_estado_nac" class="form-label">Estado de Nacimiento</label>
                                 <select class="form-select" id="create_estado_nac" name="estado_nac">
                                     <option value="">Seleccione</option>
-                                    {{-- Opciones de estados --}}
                                     <option value="Aguascalientes">Aguascalientes</option>
                                     <option value="Baja California">Baja California</option>
                                     <option value="Baja California Sur">Baja California Sur</option>
@@ -175,7 +191,7 @@
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                         <i class="bi bi-x-circle"></i> Cancelar
                     </button>
-                    <button type="submit" class="btn btn-success">
+                    <button type="submit" class="btn btn-success" id="submit-btn">
                         <i class="bi bi-save"></i> Guardar
                     </button>
                 </div>
@@ -184,3 +200,34 @@
     </div>
 </div>
 @endcan
+
+<style>
+    .is-invalid {
+        border-color: #dc3545 !important;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath d='m5.8 3.6.4.4.4-.4'/%3e%3cpath d='M6 7v2'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right calc(0.375em + 0.1875rem) center;
+        background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+    }
+
+    .field-error {
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        color: #dc3545;
+    }
+
+    #curp-status .text-danger {
+        color: #dc3545 !important;
+        font-weight: 500;
+    }
+
+    #curp-status .text-success {
+        color: #198754 !important;
+        font-weight: 500;
+    }
+
+    #create_curp_confirm:disabled {
+        background-color: #f8f9fa;
+        cursor: not-allowed;
+    }
+</style>

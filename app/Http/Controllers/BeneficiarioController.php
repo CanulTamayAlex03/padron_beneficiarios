@@ -61,13 +61,13 @@ class BeneficiarioController extends Controller
     }
 
     public function show(Beneficiario $beneficiario)
-{
-    if (request()->expectsJson()) {
-        return response()->json($beneficiario);
-    }
+    {
+        if (request()->expectsJson()) {
+            return response()->json($beneficiario);
+        }
 
-    return view('beneficiarios.show', compact('beneficiario'));
-}
+        return view('beneficiarios.show', compact('beneficiario'));
+    }
 
 
     public function edit(Beneficiario $beneficiario): JsonResponse
@@ -123,5 +123,16 @@ class BeneficiarioController extends Controller
 
         return redirect()->route('beneficiarios')
             ->with('success', 'Beneficiario eliminado correctamente.');
+    }
+
+    public function checkCurp(Request $request)
+    {
+        $request->validate([
+            'curp' => 'required|string|size:18'
+        ]);
+
+        $exists = Beneficiario::whereRaw('LOWER(curp) = ?', [strtolower($request->curp)])->exists();
+
+        return response()->json(['exists' => $exists]);
     }
 }

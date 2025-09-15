@@ -7,11 +7,12 @@
     <title>Padron de Beneficiarios</title>
     <link href="{{ mix('css/app.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/bootstrap-icons.css') }}">
-     <style>
+    <style>
         :root {
             --primary-color: #2c3e50;
             --secondary-color: #8BC34A;
         }
+
         body {
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             display: flex;
@@ -21,15 +22,18 @@
             margin: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
+
         .login-container {
             width: 100%;
             max-width: 1000px;
         }
+
         .login-card {
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             border: none;
             overflow: hidden;
         }
+
         .card-left {
             background: linear-gradient(to bottom right, var(--primary-color), #1a2530);
             color: white;
@@ -38,12 +42,14 @@
             flex-direction: column;
             justify-content: center;
         }
+
         .system-name {
             font-size: 35px;
             font-weight: 600;
             margin-bottom: 1rem;
             text-align: center;
         }
+
         .system-description {
             font-size: 1rem;
             line-height: 1.6;
@@ -51,6 +57,7 @@
             text-align: center;
             margin-bottom: 2rem;
         }
+
         .btn-login {
             background-color: var(--secondary-color);
             color: white;
@@ -59,22 +66,27 @@
             padding: 10px 20px;
             font-weight: 500;
         }
+
         .btn-login:hover {
             background-color: #7CB342;
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
+
         .form-control:focus {
             border-color: var(--secondary-color);
             box-shadow: 0 0 0 0.25rem rgba(139, 195, 74, 0.25);
         }
+
         .input-group-text {
             background-color: white;
             border-right: none;
         }
+
         .form-control {
             border-left: none;
         }
+
         .logo-img {
             max-width: 250px;
             margin-bottom: 1.5rem;
@@ -82,11 +94,12 @@
             margin-left: auto;
             margin-right: auto;
         }
+
         @media (max-width: 768px) {
             .card-left {
                 display: none;
             }
-            
+
             .login-card {
                 margin: 0 15px;
             }
@@ -105,9 +118,9 @@
                     <p class="system-description">
                         Acceda al Padrón Único de Beneficiarios para gestionar la información de los programas de asistencia social.
                     </p>
-
                 </div>
             </div>
+
             <!-- Panel derecho con formulario de login -->
             <div class="col-lg-7">
                 <div class="card login-card h-100">
@@ -119,8 +132,20 @@
                         <h4 class="text-center mb-1">Bienvenido</h4>
                         <p class="text-center text-muted mb-4">Ingrese sus credenciales para acceder al sistema</p>
 
-                        <form method="POST" action="/login">
+                        <!-- Mensajes de error generales -->
+                        @if ($errors->any())
+                        <div class="alert alert-danger">
+                            <ul class="mb-0">
+                                @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                        @endif
+
+                        <form method="POST" action="{{ url('/login') }}">
                             @csrf
+
                             <!-- Email -->
                             <div class="mb-3">
                                 <label for="email" class="form-label">Correo electrónico</label>
@@ -129,11 +154,17 @@
                                         <i class="bi bi-person"></i>
                                     </span>
                                     <input type="email"
-                                        class="form-control"
+                                        class="form-control @error('email') is-invalid @enderror"
                                         id="email"
                                         name="email"
+                                        value="{{ old('email') }}"
                                         placeholder="Ingrese su correo electrónico"
                                         required autofocus>
+                                    @error('email')
+                                    <div class="invalid-feedback">
+                                        {{ $message }}
+                                    </div>
+                                    @enderror
                                 </div>
                             </div>
 
@@ -145,17 +176,25 @@
                                         <i class="bi bi-lock"></i>
                                     </span>
                                     <input type="password"
-                                        class="form-control"
+                                        class="form-control @error('password') is-invalid @enderror"
                                         id="password"
                                         name="password"
                                         placeholder="Ingrese su contraseña"
                                         required>
+                                    <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    @error('password')
+                                    <div class="invalid-feedback">
+                                        {{ $message }}
+                                    </div>
+                                    @enderror
                                 </div>
                             </div>
 
                             <!-- Recordar usuario -->
                             <div class="mb-3 form-check">
-                                <input type="checkbox" class="form-check-input" id="remember">
+                                <input type="checkbox" class="form-check-input" id="remember" name="remember" {{ old('remember') ? 'checked' : '' }}>
                                 <label class="form-check-label" for="remember">Recordar mis datos</label>
                             </div>
 
@@ -166,11 +205,27 @@
                                 </button>
                             </div>
                         </form>
+
                     </div>
                 </div>
             </div>
         </div>
     </div>
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
+    <script>
+        const togglePassword = document.querySelector('#togglePassword');
+        const passwordInput = document.querySelector('#password');
+
+        togglePassword.addEventListener('click', function() {
+            // Alternar tipo de input
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+
+            // Cambiar icono
+            this.querySelector('i').classList.toggle('bi-eye');
+            this.querySelector('i').classList.toggle('bi-eye-slash');
+        });
+    </script>
 </body>
+
 </html>

@@ -112,8 +112,7 @@
                                             data-created="{{ $beneficiario->created_at }}"
                                             data-updated="{{ $beneficiario->updated_at }}"
                                             data-bs-toggle="tooltip"
-                                            title="Ver detalles"
-                                        >
+                                            title="Ver detalles">
                                             <i class="bi bi-eye"></i>
                                         </button>
 
@@ -137,8 +136,7 @@
                                             data-bs-toggle="modal"
                                             data-bs-target="#editBeneficiarioModal"
                                             data-bs-toggle="tooltip"
-                                            title="Editar"
-                                        >
+                                            title="Editar">
                                             <i class="bi bi-pencil-square"></i>
                                         </button>
                                         @endcan
@@ -152,8 +150,7 @@
                                             data-primer_apellido="{{ $beneficiario->primer_apellido }}"
                                             data-segundo_apellido="{{ $beneficiario->segundo_apellido }}"
                                             data-bs-toggle="tooltip"
-                                            title="Eliminar"
-                                        >
+                                            title="Eliminar">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                         @endcan
@@ -197,29 +194,29 @@
                                 $end = min($start + 4, $last);
 
                                 if ($end - $start < 4) {
-                                    $start = max($end - 4, 1);
-                                }
-                                @endphp
+                                    $start=max($end - 4, 1);
+                                    }
+                                    @endphp
 
-                                @for ($i = $start; $i <= $end; $i++)
-                                <li class="page-item {{ $i == $current ? 'active' : '' }}">
+                                    @for ($i=$start; $i <=$end; $i++)
+                                    <li class="page-item {{ $i == $current ? 'active' : '' }}">
                                     <a class="page-link" href="{{ $beneficiarios->url($i) }}">{{ $i }}</a>
-                                </li>
-                                @endfor
+                                    </li>
+                                    @endfor
 
-                                {{-- Página siguiente --}}
-                                <li class="page-item {{ !$beneficiarios->hasMorePages() ? 'disabled' : '' }}">
-                                    <a class="page-link" href="{{ $beneficiarios->nextPageUrl() }}" aria-label="Siguiente">
-                                        <span aria-hidden="true">&raquo;</span>
-                                    </a>
-                                </li>
+                                    {{-- Página siguiente --}}
+                                    <li class="page-item {{ !$beneficiarios->hasMorePages() ? 'disabled' : '' }}">
+                                        <a class="page-link" href="{{ $beneficiarios->nextPageUrl() }}" aria-label="Siguiente">
+                                            <span aria-hidden="true">&raquo;</span>
+                                        </a>
+                                    </li>
 
-                                {{-- Última página --}}
-                                <li class="page-item {{ !$beneficiarios->hasMorePages() ? 'disabled' : '' }}">
-                                    <a class="page-link" href="{{ $beneficiarios->url($last) }}" aria-label="Última">
-                                        <span aria-hidden="true">&raquo;&raquo;</span>
-                                    </a>
-                                </li>
+                                    {{-- Última página --}}
+                                    <li class="page-item {{ !$beneficiarios->hasMorePages() ? 'disabled' : '' }}">
+                                        <a class="page-link" href="{{ $beneficiarios->url($last) }}" aria-label="Última">
+                                            <span aria-hidden="true">&raquo;&raquo;</span>
+                                        </a>
+                                    </li>
                             </ul>
                         </nav>
 
@@ -286,7 +283,27 @@
     .page-link {
         border: none;
     }
+
+    #curp-status .text-danger,
+    #curp-status .text-success {
+        font-weight: 500;
+    }
+
+    #create_curp_confirm:disabled {
+        background-color: #f8f9fa;
+        cursor: not-allowed;
+    }
+
+    .fa-times-circle,
+    .fa-check-circle {
+        margin-right: 5px;
+    }
+    
 </style>
 
-@include('scripts.beneficiarios')
+<!-- Incluir los archivos separados -->
+@include('scripts.beneficiarios-main')
+@include('scripts.beneficiarios-validation')
+@include('scripts.beneficiarios-modals')
+
 @endsection

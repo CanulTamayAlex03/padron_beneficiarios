@@ -5,7 +5,7 @@
 
         /* ---------- VER detalles (fetch /{id}) ---------- */
         document.addEventListener('click', function(e) {
-            const btn = e.target.closest('.view-btn');
+            const btn = e.target.closest('.view-details-name');
             if (!btn) return;
             const id = btn.getAttribute('data-id');
             if (!id) return;
@@ -43,9 +43,9 @@
                         document.getElementById('view-edad').textContent = 'No especificado';
                     }
 
-                    document.getElementById('view-estado_nac').textContent = d.estado_nac ?? 'No especificado';
+                    document.getElementById('view-estado_nac').textContent = d.estado?.nombre ?? d.estado_nacimiento ?? 'No especificado';
                     document.getElementById('view-sexo').textContent = d.sexo ? (d.sexo === 'M' ? 'Masculino' : d.sexo === 'F' ? 'Femenino' : 'Otro') : 'No especificado';
-                    document.getElementById('view-ocupacion').textContent = d.ocupacion ?? 'No especificado';
+                    document.getElementById('view-ocupacion').textContent = d.ocupacion?.ocupacion ?? d.ocupacion_nombre ?? 'No especificado';
                     document.getElementById('view-estado_civil').textContent = d.estado_civil ?? 'No especificado';
 
                     document.getElementById('view-discapacidad').textContent = d.discapacidad ? 'Sí' : 'No';
@@ -77,12 +77,20 @@
             // Mostrar loading temporal si existen campos
             const fillLoading = () => {
                 if (document.getElementById('edit_nombres')) document.getElementById('edit_nombres').value = 'Cargando...';
-                if (document.getElementById('edit_apellidos')) document.getElementById('edit_apellidos').value = 'Cargando...';
+                if (document.getElementById('edit_primer_apellido')) document.getElementById('edit_primer_apellido').value = 'Cargando...';
+                if (document.getElementById('edit_segundo_apellido')) document.getElementById('edit_segundo_apellido').value = 'Cargando...';
                 if (document.getElementById('edit_curp')) document.getElementById('edit_curp').value = 'Cargando...';
+                if (document.getElementById('edit_estado_id')) document.getElementById('edit_estado_id').value = 'Cargando...';
+                if (document.getElementById('edit_ocupacion_id')) document.getElementById('edit_ocupacion_id').value = 'Cargando...';
+
+                // Nuevos campos de domicilio
+                if (document.getElementById('edit_calle')) document.getElementById('edit_calle').value = 'Cargando...';
+                if (document.getElementById('edit_estado_viv_id')) document.getElementById('edit_estado_viv_id').value = 'Cargando...';
+                if (document.getElementById('edit_municipio_id')) document.getElementById('edit_municipio_id').value = 'Cargando...';
             };
             fillLoading();
 
-            fetch(`${baseUrl}/${id}/edit`, {
+            fetch(`${baseUrl}/${id}/editar`, {
                     headers: {
                         'Accept': 'application/json'
                     }
@@ -93,10 +101,16 @@
                 })
                 .then(data => {
                     const d = data.data || data;
+
+                    // Datos personales básicos
                     if (document.getElementById('edit_nombres')) document.getElementById('edit_nombres').value = d.nombres ?? '';
                     if (document.getElementById('edit_primer_apellido')) document.getElementById('edit_primer_apellido').value = d.primer_apellido ?? '';
                     if (document.getElementById('edit_segundo_apellido')) document.getElementById('edit_segundo_apellido').value = d.segundo_apellido ?? '';
                     if (document.getElementById('edit_curp')) document.getElementById('edit_curp').value = d.curp ?? '';
+                    if (document.getElementById('edit_estado_id')) document.getElementById('edit_estado_id').value = d.estado_id ?? '';
+                    if (document.getElementById('edit_ocupacion_id')) document.getElementById('edit_ocupacion_id').value = d.ocupacion_id ?? '';
+
+                    // Fecha de nacimiento
                     if (document.getElementById('edit_fecha_nac')) {
                         if (d.fecha_nac) {
                             const fecha = new Date(d.fecha_nac);
@@ -111,9 +125,7 @@
                         }
                     }
 
-                    if (document.getElementById('edit_ocupacion')) document.getElementById('edit_ocupacion').value = d.ocupacion ?? '';
-
-                    if (document.getElementById('edit_estado_nac')) document.getElementById('edit_estado_nac').value = d.estado_nac ?? '';
+                    // Selects y checkboxes
                     if (document.getElementById('edit_sexo')) document.getElementById('edit_sexo').value = d.sexo ?? '';
                     if (document.getElementById('edit_estado_civil')) document.getElementById('edit_estado_civil').value = d.estado_civil ?? '';
 
@@ -121,6 +133,32 @@
                     if (document.getElementById('edit_indigena')) document.getElementById('edit_indigena').checked = !!d.indigena;
                     if (document.getElementById('edit_maya_hablante')) document.getElementById('edit_maya_hablante').checked = !!d.maya_hablante;
                     if (document.getElementById('edit_afromexicano')) document.getElementById('edit_afromexicano').checked = !!d.afromexicano;
+
+                    if (document.getElementById('edit_calle')) document.getElementById('edit_calle').value = d.calle ?? '';
+                    if (document.getElementById('edit_numero')) document.getElementById('edit_numero').value = d.numero ?? '';
+                    if (document.getElementById('edit_letra')) document.getElementById('edit_letra').value = d.letra ?? '';
+                    if (document.getElementById('edit_cruzamiento_1')) document.getElementById('edit_cruzamiento_1').value = d.cruzamiento_1 ?? '';
+                    if (document.getElementById('edit_cruzamiento_2')) document.getElementById('edit_cruzamiento_2').value = d.cruzamiento_2 ?? '';
+                    if (document.getElementById('edit_tipo_asentamiento')) document.getElementById('edit_tipo_asentamiento').value = d.tipo_asentamiento ?? '';
+                    if (document.getElementById('edit_colonia_fracc')) document.getElementById('edit_colonia_fracc').value = d.colonia_fracc ?? '';
+                    if (document.getElementById('edit_estado_viv_id')) document.getElementById('edit_estado_viv_id').value = d.estado_viv_id ?? '';
+                    if (document.getElementById('edit_municipio_id')) document.getElementById('edit_municipio_id').value = d.municipio_id ?? '';
+                    if (document.getElementById('edit_localidad')) document.getElementById('edit_localidad').value = d.localidad ?? '';
+                    if (document.getElementById('edit_cp')) document.getElementById('edit_cp').value = d.cp ?? '';
+                    if (document.getElementById('edit_telefono')) document.getElementById('edit_telefono').value = d.telefono ?? '';
+                    if (document.getElementById('edit_referencias_domicilio')) document.getElementById('edit_referencias_domicilio').value = d.referencias_domicilio ?? '';
+
+                    // Filtrar municipios según el estado seleccionado
+                    if (document.getElementById('edit_estado_viv_id') && document.getElementById('edit_municipio_id')) {
+                        filterEditMunicipiosByEstado(d.estado_viv_id);
+
+                        // Establecer el municipio después de un pequeño delay para que se complete el filtrado
+                        setTimeout(() => {
+                            if (document.getElementById('edit_municipio_id')) {
+                                document.getElementById('edit_municipio_id').value = d.municipio_id ?? '';
+                            }
+                        }, 100);
+                    }
 
                     // Establecer action del formulario de edición
                     const editForm = document.getElementById('editBeneficiarioForm');
@@ -203,29 +241,39 @@
         const createForm = document.getElementById('createBeneficiarioForm');
         if (createForm) {
             createForm.addEventListener('submit', function(e) {
-                e.preventDefault(); // ← PREVENIR ENVÍO NORMAL DEL FORMULARIO
+                e.preventDefault();
                 console.log('Enviando formulario de creación (AJAX)');
+
+                const submitBtn = document.getElementById('submit-btn');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Guardando...';
+                submitBtn.disabled = true;
 
                 // Validar CURP antes de enviar
                 const curpInput = document.getElementById('create_curp');
                 const curpConfirmInput = document.getElementById('create_curp_confirm');
-
                 const curp = curpInput.value.trim();
                 const curpConfirm = curpConfirmInput.value.trim();
 
                 // Validaciones de CURP
                 if ((curp === '' && curpConfirm !== '') || (curp !== '' && curpConfirm === '')) {
                     window.showAlert('Debe completar ambos campos de CURP o dejarlos vacíos', 'danger');
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
                     return;
                 }
 
                 if (curp !== curpConfirm) {
                     window.showAlert('Las CURP no coinciden', 'danger');
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
                     return;
                 }
 
                 if (curp !== '' && curp.length !== 18) {
                     window.showAlert('La CURP debe tener exactamente 18 caracteres', 'danger');
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
                     return;
                 }
 
@@ -240,10 +288,22 @@
                         },
                         body: formData
                     })
-                    .then(window.handleJsonResponse)
+                    .then(async response => {
+                        const data = await response.json();
+                        return {
+                            ok: response.ok,
+                            status: response.status,
+                            data: data
+                        };
+                    })
                     .then(result => {
-                        if (result.ok) {
-                            // Cerrar el modal inmediatamente
+                        console.log('🔍 Resultado completo:', result);
+
+                        if (result.ok && result.data.success) {
+                            console.log('Beneficiario creado exitosamente');
+                            console.log('Datos recibidos:', result.data);
+
+                            // Cerrar modal de creación
                             const modalEl = document.getElementById('createBeneficiarioModal');
                             if (modalEl) {
                                 const modalInstance = bootstrap.Modal.getInstance(modalEl);
@@ -252,62 +312,65 @@
                                 }
                             }
 
-                            const msg = result.data && result.data.message ?
-                                result.data.message :
-                                'Beneficiario creado correctamente.';
-
-                            // Mostrar éxito FUERA del modal (en la página principal)
+                            const msg = result.data.message || 'Beneficiario creado correctamente.';
                             window.showAlert(msg, 'success');
 
-                            // Recargar la página después de un breve delay
-                            setTimeout(() => window.location.reload(), 900);
-                        } else {
-                            // MOSTRAR ERRORES DENTRO DEL MODAL SOLAMENTE
-                            if (result.status === 422 && result.messages) {
-                                // Limpiar errores previos
-                                clearModalErrors();
+                            // Verificar que tenemos datos válidos
+                            if (result.data.data) {
+                                window.ultimoBeneficiarioCreado = result.data.data;
+                                console.log('Beneficiario guardado:', window.ultimoBeneficiarioCreado);
 
-                                // Mostrar errores específicos en cada campo del modal
-                                showModalErrors(result.messages);
+                                // Mostrar modal de estudio después de cerrar el modal actual
+                                setTimeout(() => {
+                                    mostrarModalEstudioSocioeconomico(window.ultimoBeneficiarioCreado);
+                                }, 800);
                             } else {
-                                // Para otros errores, mostrar dentro del modal
+                                console.error('No hay datos del beneficiario en la respuesta');
+                                // Recargar la página si no hay datos para el estudio
+                                setTimeout(() => window.location.reload(), 1500);
+                            }
+
+                        } else {
+                            // Manejar errores
+                            console.error('Error en la respuesta:', result);
+
+                            if (result.status === 422 && result.data.errors) {
+                                clearModalErrors();
+                                showModalErrors(Object.values(result.data.errors).flat());
+                            } else {
+                                const errorMsg = result.data.message || 'Error al crear el beneficiario';
                                 const errorContainer = document.getElementById('modal-general-error');
                                 if (errorContainer) {
                                     errorContainer.innerHTML = `
-                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                    <strong>Error:</strong> ${result.messages.join('<br>')}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                </div>
-                            `;
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <strong>Error:</strong> ${errorMsg}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        `;
                                     errorContainer.classList.remove('d-none');
                                 }
                             }
                         }
                     })
                     .catch(err => {
-                        console.error('Error al crear beneficiario:', err);
-                        // Mostrar error dentro del modal
-                        const errorContainer = document.getElementById('modal-general-error');
-                        if (errorContainer) {
-                            errorContainer.innerHTML = `
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <strong>Error:</strong> Error al crear el beneficiario
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    `;
-                            errorContainer.classList.remove('d-none');
-                        }
+                        console.error('Error en la petición:', err);
+                        window.showAlert('Error de conexión al crear el beneficiario', 'danger');
+                    })
+                    .finally(() => {
+                        submitBtn.innerHTML = originalText;
+                        submitBtn.disabled = false;
                     });
             });
         }
 
-        // Función para limpiar errores previos en el modal
         function clearModalErrors() {
-            // Limpiar errores de campos
+
             const errorElements = document.querySelectorAll('#createBeneficiarioModal .field-error');
             errorElements.forEach(el => el.remove());
 
-            // Limpiar mensajes de error general
+            const invalidInputs = document.querySelectorAll('#createBeneficiarioModal .is-invalid');
+            invalidInputs.forEach(input => input.classList.remove('is-invalid'));
+
             const generalError = document.getElementById('modal-general-error');
             if (generalError) {
                 generalError.classList.add('d-none');
@@ -318,7 +381,6 @@
         // Función para mostrar errores específicos en campos del modal
         function showModalErrors(messages) {
             messages.forEach(message => {
-                // Buscar a qué campo pertenece el error
                 const fieldMatch = message.match(/\[(.*?)\]/);
                 if (fieldMatch) {
                     const fieldName = fieldMatch[1].toLowerCase();
@@ -330,14 +392,14 @@
                         errorDiv.className = 'text-danger small mt-1 field-error';
                         errorDiv.innerHTML = `<i class="bi bi-exclamation-circle"></i> ${message.replace(/\[.*?\] /, '')}`;
 
-                        // Insertar después del campo
-                        field.closest('.mb-3')?.appendChild(errorDiv);
+                        const parent = field.closest('.mb-3') || field.closest('.col-md-6') || field.parentElement;
+                        if (parent) {
+                            parent.appendChild(errorDiv);
+                        }
 
-                        // Resaltar el campo con error
                         field.classList.add('is-invalid');
                     }
                 } else {
-                    // Error general - mostrar en el contenedor general
                     const errorContainer = document.getElementById('modal-general-error');
                     if (errorContainer) {
                         errorContainer.innerHTML = `
@@ -351,6 +413,7 @@
                 }
             });
         }
+
         /* ---------- SUBMIT editar (AJAX) ---------- */
         const editForm = document.getElementById('editBeneficiarioForm');
         if (editForm) {
@@ -411,6 +474,130 @@
             });
         }
 
+        /* ---------- Función mejorada para mostrar modal de estudio ---------- */
+        window.mostrarModalEstudioSocioeconomico = function(beneficiarioData) {
+            console.log('Mostrando modal para:', beneficiarioData);
+
+            // Verificar que tenemos datos válidos
+            if (!beneficiarioData || !beneficiarioData.id) {
+                console.error('Datos del beneficiario inválidos:', beneficiarioData);
+                window.showAlert('Error: No se pudieron obtener los datos del beneficiario', 'warning');
+                setTimeout(() => window.location.reload(), 1500);
+                return;
+            }
+
+            // Mostrar el modal de confirmación
+            const modalEl = document.getElementById('estudioSocioeconomicoModal');
+            if (!modalEl) {
+                console.error('Modal de estudio socioeconómico no encontrado');
+                window.showAlert('Error: No se pudo abrir el modal de confirmación', 'warning');
+                setTimeout(() => window.location.reload(), 1500);
+                return;
+            }
+
+            // Actualizar la información en el modal
+            const infoElement = document.getElementById('beneficiario-info');
+            if (infoElement) {
+                const nombres = beneficiarioData.nombres || '';
+                const primerApellido = beneficiarioData.primer_apellido || '';
+                const segundoApellido = beneficiarioData.segundo_apellido || '';
+                const curp = beneficiarioData.curp || '';
+
+                const nombreCompleto = `${nombres} ${primerApellido} ${segundoApellido}`.trim();
+                const curpInfo = curp ? `(CURP: ${curp})` : '';
+
+                infoElement.textContent = `${nombreCompleto} ${curpInfo}`;
+            }
+
+            // Configurar el botón de realizar estudio
+            const btnIniciarEstudio = document.getElementById('btn-iniciar-estudio');
+            if (btnIniciarEstudio) {
+                btnIniciarEstudio.onclick = function() {
+                    console.log('Redirigiendo a estudio para beneficiario ID:', beneficiarioData.id);
+
+                    // Construir URL usando la ruta nombrada de Laravel
+                    const estudioUrl = `/estudios/create/${beneficiarioData.id}`;
+                    console.log('URL de redirección:', estudioUrl);
+
+                    const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                    if (modalInstance) {
+                        modalInstance.hide();
+                    }
+
+                    window.location.href = estudioUrl;
+                };
+            }
+
+            setTimeout(() => {
+                const modal = new bootstrap.Modal(modalEl);
+                modal.show();
+            }, 100);
+        };
+
+        // Event listener para el botón "Realizar Estudio"
+        const btnIniciarEstudio = document.getElementById('btn-iniciar-estudio');
+        if (btnIniciarEstudio) {
+            btnIniciarEstudio.addEventListener('click', function() {
+                console.log('Botón "Realizar Estudio" clickeado');
+                console.log('Datos disponibles:', window.ultimoBeneficiarioCreado);
+
+                if (window.ultimoBeneficiarioCreado && window.ultimoBeneficiarioCreado.id) {
+                    // Construir URL correctamente usando la ruta nombrada
+                    const estudioUrl = "{{ route('estudios.create', ['beneficiario' => 'ID']) }}".replace('ID', window.ultimoBeneficiarioCreado.id);
+                    console.log('Redirigiendo a:', estudioUrl);
+
+                    window.location.href = estudioUrl;
+                } else {
+                    console.error('No hay datos válidos del beneficiario');
+                    window.showAlert('Error: No se pudo redirigir al estudio socioeconómico', 'danger');
+
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('estudioSocioeconomicoModal'));
+                    if (modal) modal.hide();
+
+                    setTimeout(() => window.location.reload(), 1000);
+                }
+            });
+        }
+
+        const modalEstudio = document.getElementById('estudioSocioeconomicoModal');
+        if (modalEstudio) {
+            modalEstudio.addEventListener('hidden.bs.modal', function() {
+                console.log('🔒 Modal de estudio cerrado');
+                setTimeout(() => window.location.reload(), 300);
+            });
+        }
+
         console.log('Event listeners de modals configurados correctamente');
     });
+
+    /* ---------- Función para filtrar municipios en edición ---------- */
+    function filterEditMunicipiosByEstado(estadoId) {
+        const editEstadoVivSelect = document.getElementById('edit_estado_viv_id');
+        const editMunicipioSelect = document.getElementById('edit_municipio_id');
+
+        if (!editMunicipioSelect) return;
+
+        const editMunicipioOptions = Array.from(editMunicipioSelect.options);
+
+        if (!estadoId) {
+            editMunicipioOptions.forEach(option => {
+                option.style.display = '';
+            });
+            editMunicipioSelect.value = '';
+            return;
+        }
+
+        editMunicipioOptions.forEach(option => {
+            if (option.value === '' || option.getAttribute('data-estado') === estadoId) {
+                option.style.display = '';
+            } else {
+                option.style.display = 'none';
+            }
+        });
+
+        const selectedOption = editMunicipioSelect.options[editMunicipioSelect.selectedIndex];
+        if (selectedOption && selectedOption.getAttribute('data-estado') !== estadoId && selectedOption.value !== '') {
+            editMunicipioSelect.value = '';
+        }
+    }
 </script>

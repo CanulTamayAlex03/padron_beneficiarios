@@ -9,6 +9,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <h2 class="mb-0">Padrón de Beneficiarios</h2>
 
+                        <!--
                         @if(session('success'))
                         <div class="alert alert-success alert-dismissible fade show" role="alert">
                             <strong>¡Éxito!</strong> {{ session('success') }}
@@ -21,7 +22,7 @@
                             <strong>Error:</strong> {{ session('error') }}
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
-                        @endif
+                        @endif -->
 
                         <div>
                             @can('crear beneficiarios')
@@ -74,24 +75,60 @@
                             <thead class="table-success">
                                 <tr>
                                     <th>ID</th>
-                                    <th>Nombres</th>
-                                    <th>Primer Apellido</th>
-                                    <th>Segundo Apellido</th>
+                                    <th>Nombre completo</th>
                                     <th>CURP</th>
                                     <th>Fecha Registro</th>
+                                    <th>Estudios</th>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse($beneficiarios as $beneficiario)
+
+                                @php
+                                $cantidadEstudios = $beneficiario->estudiosSocioeconomicos->count();
+
+                                if ($cantidadEstudios > 0) {
+                                $rutaEdicion = route('beneficiarios.estudios.editar', [$beneficiario->id, $beneficiario->estudiosSocioeconomicos->first()->id]);
+                                $tooltip = "Editar beneficiario y estudios (" . $cantidadEstudios . " estudios)";
+                                $badge = '<span class="badge bg-dark ms-1">' . $cantidadEstudios . '</span>';
+                                } else {
+                                $rutaEdicion = route('beneficiarios.editar', $beneficiario->id);
+                                $tooltip = "Editar beneficiario (sin estudios)";
+                                $badge = '';
+                                }
+                                @endphp
                                 <tr>
                                     <td>{{ $beneficiario->id }}</td>
-                                    <td>{{ $beneficiario->nombres }}</td>
-                                    <td>{{ $beneficiario->primer_apellido }}</td>
-                                    <td>{{ $beneficiario->segundo_apellido }}</td>
+
+                                    <td>
+                                        <span class="view-details-name"
+                                            style="cursor: pointer; text-decoration: none; font-weight: 500;"
+                                            data-id="{{ $beneficiario->id }}"
+                                            data-nombres="{{ $beneficiario->nombres }}"
+                                            data-primer_apellido="{{ $beneficiario->primer_apellido }}"
+                                            data-segundo_apellido="{{ $beneficiario->segundo_apellido }}"
+                                            data-curp="{{ $beneficiario->curp }}"
+                                            data-fecha_nac="{{ $beneficiario->fecha_nac }}"
+                                            data-estado_nac="{{ $beneficiario->estado->nombre ?? 'N/A' }}"
+                                            data-sexo="{{ $beneficiario->sexo }}"
+                                            data-discapacidad="{{ $beneficiario->discapacidad ? 1 : 0 }}"
+                                            data-indigena="{{ $beneficiario->indigena ? 1 : 0 }}"
+                                            data-maya_hablante="{{ $beneficiario->maya_hablante ? 1 : 0 }}"
+                                            data-afromexicano="{{ $beneficiario->afromexicano ? 1 : 0 }}"
+                                            data-estado_civil="{{ $beneficiario->estado_civil }}"
+                                            data-ocupacion="{{ $beneficiario->ocupacion->ocupacion ?? 'N/A' }}"
+                                            data-created="{{ $beneficiario->created_at }}"
+                                            data-updated="{{ $beneficiario->updated_at }}"
+                                            title="Click para ver detalles">
+                                            {{ $beneficiario->nombres }} {{ $beneficiario->primer_apellido }} {{ $beneficiario->segundo_apellido }}
+                                        </span>
+                                    </td>
                                     <td>{{ $beneficiario->curp }}</td>
                                     <td>{{ $beneficiario->created_at->format('d/m/Y H:i') }}</td>
+                                    <td>{{ $cantidadEstudios }}</td>
                                     <td>
+                                        <!--
                                         <button
                                             class="btn btn-sm btn-primary view-btn"
                                             data-id="{{ $beneficiario->id }}"
@@ -101,44 +138,36 @@
                                             data-apellidos="{{ trim($beneficiario->primer_apellido . ' ' . $beneficiario->segundo_apellido) }}"
                                             data-curp="{{ $beneficiario->curp }}"
                                             data-fecha_nac="{{ $beneficiario->fecha_nac }}"
-                                            data-estado_nac="{{ $beneficiario->estado_nac }}"
+                                            data-estado_nac="{{ $beneficiario->estado->nombre ?? 'N/A' }}"
                                             data-sexo="{{ $beneficiario->sexo }}"
                                             data-discapacidad="{{ $beneficiario->discapacidad ? 1 : 0 }}"
                                             data-indigena="{{ $beneficiario->indigena ? 1 : 0 }}"
                                             data-maya_hablante="{{ $beneficiario->maya_hablante ? 1 : 0 }}"
                                             data-afromexicano="{{ $beneficiario->afromexicano ? 1 : 0 }}"
                                             data-estado_civil="{{ $beneficiario->estado_civil }}"
-                                            data-ocupacion="{{ $beneficiario->ocupacion }}"
+                                            data-ocupacion="{{ $beneficiario->ocupacion->ocupacion ?? 'N/A' }}"
                                             data-created="{{ $beneficiario->created_at }}"
                                             data-updated="{{ $beneficiario->updated_at }}"
                                             data-bs-toggle="tooltip"
                                             title="Ver detalles">
                                             <i class="bi bi-eye"></i>
                                         </button>
+                                        -->
 
                                         @can('editar beneficiarios')
-                                        <button
-                                            class="btn btn-sm btn-warning edit-btn"
-                                            data-id="{{ $beneficiario->id }}"
-                                            data-nombres="{{ $beneficiario->nombres }}"
-                                            data-primer_apellido="{{ $beneficiario->primer_apellido }}"
-                                            data-segundo_apellido="{{ $beneficiario->segundo_apellido }}"
-                                            data-curp="{{ $beneficiario->curp }}"
-                                            data-fecha_nac="{{ $beneficiario->fecha_nac }}"
-                                            data-estado_nac="{{ $beneficiario->estado_nac }}"
-                                            data-sexo="{{ $beneficiario->sexo }}"
-                                            data-discapacidad="{{ $beneficiario->discapacidad ? 1 : 0 }}"
-                                            data-indigena="{{ $beneficiario->indigena ? 1 : 0 }}"
-                                            data-maya_hablante="{{ $beneficiario->maya_hablante ? 1 : 0 }}"
-                                            data-afromexicano="{{ $beneficiario->afromexicano ? 1 : 0 }}"
-                                            data-estado_civil="{{ $beneficiario->estado_civil }}"
-                                            data-ocupacion="{{ $beneficiario->ocupacion }}"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#editBeneficiarioModal"
+                                        <a href="{{ route('estudios.create', $beneficiario->id) }}"
+                                            class="btn btn-sm btn-primary"
                                             data-bs-toggle="tooltip"
-                                            title="Editar">
+                                            title="Crear estudio socioeconómico">
+                                            <i class="bi bi-clipboard-plus"></i>
+                                        </a>
+
+                                        <a href="{{ $rutaEdicion }}"
+                                            class="btn btn-sm btn-warning"
+                                            data-bs-toggle="tooltip"
+                                            title="{{ $tooltip }}">
                                             <i class="bi bi-pencil-square"></i>
-                                        </button>
+                                        </a>
                                         @endcan
 
                                         @can('eliminar beneficiarios')
@@ -298,7 +327,6 @@
     .fa-check-circle {
         margin-right: 5px;
     }
-    
 </style>
 
 <!-- Incluir los archivos separados -->

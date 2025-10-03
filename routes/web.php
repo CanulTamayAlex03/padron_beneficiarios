@@ -5,7 +5,9 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\ExcelController;
 use App\Http\Controllers\BeneficiarioController;
+use App\Http\Controllers\BeneficiarioFamiliarController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\EstudioSocioeconomicoController;
 
 // ================== LOGIN / LOGOUT ==================
 Route::get('/', [AuthController::class, 'showLoginForm'])->name('login');
@@ -18,17 +20,18 @@ Route::middleware('auth')->group(function () {
     // ================== BENEFICIARIOS ==================
     Route::middleware('permission:ver beneficiarios')->group(function () {
         Route::get('/beneficiarios/check-curp', [BeneficiarioController::class, 'checkCurp'])
-        ->name('beneficiarios.check-curp');
+            ->name('beneficiarios.check-curp');
         Route::get('/beneficiarios', [BeneficiarioController::class, 'index'])->name('beneficiarios');
         Route::get('/beneficiarios/{beneficiario}', [BeneficiarioController::class, 'show'])->name('beneficiarios.show');
-        Route::get('/beneficiarios/{beneficiario}/edit', [BeneficiarioController::class, 'edit'])
-            ->name('beneficiarios.edit');
+
+        // Editar solo el beneficiario (sin estudios)
+        Route::get('/beneficiarios/{beneficiario}/editar', [BeneficiarioController::class, 'editarBeneficiario'])
+            ->name('beneficiarios.editar');
     });
-    
+
     Route::post('/beneficiarios', [BeneficiarioController::class, 'store'])
         ->middleware('permission:crear beneficiarios')
         ->name('beneficiarios.store');
-
 
     Route::put('/beneficiarios/{beneficiario}', [BeneficiarioController::class, 'update'])
         ->middleware('permission:editar beneficiarios')
@@ -37,6 +40,29 @@ Route::middleware('auth')->group(function () {
     Route::delete('/beneficiarios/{beneficiario}', [BeneficiarioController::class, 'destroy'])
         ->middleware('permission:eliminar beneficiarios')
         ->name('beneficiarios.destroy');
+
+    // ================== FAMILIARES DE BENEFICIARIOS ==================
+
+    Route::post('beneficiarios/{beneficiario}/familiares', [BeneficiarioFamiliarController::class, 'store'])
+        ->name('familiares.store');
+
+    Route::put('familiares/{familiar}', [BeneficiarioFamiliarController::class, 'update'])
+        ->name('familiares.update');
+
+    Route::delete('familiares/{familiar}', [BeneficiarioFamiliarController::class, 'destroy'])
+        ->name('familiares.destroy');
+
+    // ================== ESTUDIO SOCIOECONOMICO ==================
+    Route::get('estudios', [EstudioSocioeconomicoController::class, 'index'])->name('estudios.index');
+    Route::get('estudios/create/{beneficiario}', [EstudioSocioeconomicoController::class, 'create'])->name('estudios.create');
+    Route::post('estudios', [EstudioSocioeconomicoController::class, 'store'])->name('estudios.store');
+
+    // Ruta para editar un estudio específico junto con el beneficiario
+    Route::get('beneficiarios/{beneficiario}/estudios/{estudio}/editar', [EstudioSocioeconomicoController::class, 'editarCompleto'])
+        ->name('beneficiarios.estudios.editar');
+
+    Route::put('estudios/{estudio}', [EstudioSocioeconomicoController::class, 'update'])->name('estudios.update');
+
 
     // ================== PANEL ADMINISTRADOR ==================
     Route::prefix('administrador')

@@ -1,4 +1,3 @@
-<!-- views/scripts/beneficiarios-validation.blade.php -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         let curpCheckTimeout = null;
@@ -151,5 +150,115 @@
         }
 
         console.log('Funciones de validación configuradas correctamente');
+    });
+
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const fechaNacInput = document.getElementById('create_fecha_nac');
+        const edadInput = document.getElementById('create_edad');
+
+        if (fechaNacInput && edadInput) {
+            fechaNacInput.addEventListener('change', calcularEdadDesdeInput);
+            fechaNacInput.addEventListener('input', calcularEdadDesdeInput);
+
+            setTimeout(() => {
+                if (fechaNacInput.value) {
+                    calcularEdadDesdeInput();
+                }
+            }, 100);
+        }
+
+        function calcularEdadDesdeInput() {
+            const fechaNac = fechaNacInput.value;
+            if (!fechaNac) {
+                edadInput.value = '';
+                return;
+            }
+
+            const fecha = new Date(fechaNac);
+            const fechaAjustada = new Date(fecha.getTime() + fecha.getTimezoneOffset() * 60000);
+
+            const edad = window.calcularEdad(fechaAjustada);
+            edadInput.value = `${edad} años`;
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const estadoVivSelect = document.getElementById('create_estado_viv_id');
+        const municipioSelect = document.getElementById('create_municipio_id');
+        const municipioOptions = Array.from(municipioSelect.options);
+
+        function filterMunicipiosByEstado(estadoId) {
+            // Mostrar todos los municipios si no hay estado seleccionado
+            if (!estadoId) {
+                municipioOptions.forEach(option => {
+                    option.style.display = '';
+                });
+                municipioSelect.value = '';
+                return;
+            }
+
+            // Filtrar municipios por estado
+            municipioOptions.forEach(option => {
+                if (option.value === '' || option.getAttribute('data-estado') === estadoId) {
+                    option.style.display = '';
+                } else {
+                    option.style.display = 'none';
+                }
+            });
+
+            // Resetear selección si el municipio actual no pertenece al estado
+            const selectedOption = municipioSelect.options[municipioSelect.selectedIndex];
+            if (selectedOption && selectedOption.getAttribute('data-estado') !== estadoId && selectedOption.value !== '') {
+                municipioSelect.value = '';
+            }
+        }
+
+        // Event listener para cambio de estado
+        estadoVivSelect.addEventListener('change', function() {
+            filterMunicipiosByEstado(this.value);
+        });
+
+        // Inicializar filtro al cargar la página
+        filterMunicipiosByEstado(estadoVivSelect.value);
+    });
+
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const editEstadoVivSelect = document.getElementById('edit_estado_viv_id');
+        const editMunicipioSelect = document.getElementById('edit_municipio_id');
+
+        if (editEstadoVivSelect && editMunicipioSelect) {
+            editEstadoVivSelect.addEventListener('change', function() {
+                filterEditMunicipiosByEstado(this.value);
+            });
+        }
+
+        window.filterEditMunicipiosByEstado = function(estadoId) {
+            if (!editMunicipioSelect) return;
+
+            const editMunicipioOptions = Array.from(editMunicipioSelect.options);
+
+            if (!estadoId) {
+                editMunicipioOptions.forEach(option => {
+                    option.style.display = '';
+                });
+                editMunicipioSelect.value = '';
+                return;
+            }
+
+            editMunicipioOptions.forEach(option => {
+                if (option.value === '' || option.getAttribute('data-estado') === estadoId) {
+                    option.style.display = '';
+                } else {
+                    option.style.display = 'none';
+                }
+            });
+
+            const selectedOption = editMunicipioSelect.options[editMunicipioSelect.selectedIndex];
+            if (selectedOption && selectedOption.getAttribute('data-estado') !== estadoId && selectedOption.value !== '') {
+                editMunicipioSelect.value = '';
+            }
+        };
     });
 </script>

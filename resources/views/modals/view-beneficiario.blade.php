@@ -12,7 +12,6 @@
             <!-- Body -->
             <div class="modal-body">
                 <div class="row g-3">
-                    <!-- Columna izquierda -->
                     <div class="col-md-6">
                         <div class="card border-0 shadow-sm h-100">
                             <div class="card-body">
@@ -25,6 +24,7 @@
                                 <p><strong>Fecha Nac.:</strong> <span id="view-fecha_nac"></span></p>
                                 <p><strong>Edad:</strong> <span id="view-edad"></span></p>
                                 <p><strong>Estado Nac.:</strong> <span id="view-estado_nac"></span></p>
+                                
                                 <p><strong>Sexo:</strong> <span id="view-sexo"></span></p>
                             </div>
                         </div>

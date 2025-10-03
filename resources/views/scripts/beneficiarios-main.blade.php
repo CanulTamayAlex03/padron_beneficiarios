@@ -8,6 +8,9 @@
         window.curpValida = true;
         window.curpCoincide = true;
 
+        window.ultimoBeneficiarioCreado = null;
+        window.estudioSocioeconomicoUrl = '/estudios/create';
+
         /* ---------- Inicializar tooltips (Bootstrap 5) ---------- */
         (function initTooltips() {
             const triggers = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));

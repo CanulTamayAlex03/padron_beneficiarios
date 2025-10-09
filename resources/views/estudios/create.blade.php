@@ -143,7 +143,14 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="d-flex justify-content-end pe-3 pb-3">
+                                <button type="submit" class="btn btn-success"
+                                    onclick="return confirm('¿Deseas guardar los datos iniciales del estudio socioeconómico?')">
+                                    <i class="bi bi-save"></i> Guardar Datos Principales
+                                </button>
+                            </div>
                         </div>
+                    
 
                         <!-- Navegación por pasos -->
                         <ul class="nav nav-pills nav-justified mb-4" id="estudioTabs" role="tablist">
@@ -164,139 +171,14 @@
                             </li>
                         </ul>
 
-                        <form id="estudioForm">
+                        
                             <div class="tab-content" id="estudioTabsContent">
 
                                 <!-- PASO 1: Editar datos del beneficiario -->
-                                <div class="tab-pane fade show active" id="paso1" role="tabpanel">
-                                    <fieldset class="border rounded p-3 mb-4">
-                                        <legend class="float-none w-auto px-3 fw-bold text-dark">
-                                            <i class="bi bi-person-circle me-2"></i>Evaluación Económica y Familiar
-                                        </legend>
-
-                                        <div class="row">
-                                            <div class="col-md-6 mb-3">
-                                                <label for="ingreso_mensual" class="form-label">Ingreso Mensual Familiar ($)</label>
-                                                <div class="input-group">
-                                                    <span class="input-group-text">$</span>
-                                                    <input type="number" class="form-control" id="ingreso_mensual"
-                                                        placeholder="0.00" min="0" step="0.01">
-                                                </div>
-                                                <div class="form-text">Ingreso total mensual del hogar</div>
-                                            </div>
-
-                                            <div class="col-md-6 mb-3">
-                                                <label for="personas_dependen" class="form-label">Personas que Dependen del Ingreso</label>
-                                                <input type="number" class="form-control" id="personas_dependen"
-                                                    min="1" value="1" placeholder="Ej: 4">
-                                                <div class="form-text">Incluyendo al beneficiario</div>
-                                            </div>
-
-                                            <div class="col-md-6 mb-3">
-                                                <label for="vivienda_tipo" class="form-label">Tipo de Vivienda</label>
-                                                <select class="form-select" id="vivienda_tipo">
-                                                    <option value="">Seleccionar tipo...</option>
-                                                    <option value="propia">Propia</option>
-                                                    <option value="rentada">Rentada</option>
-                                                    <option value="prestada">Prestada</option>
-                                                    <option value="hipotecada">Hipotecada</option>
-                                                    <option value="invasion">Invasión</option>
-                                                    <option value="otro">Otro</option>
-                                                </select>
-                                            </div>
-
-                                            <div class="col-md-6 mb-3">
-                                                <label class="form-label">Servicios Básicos Disponibles</label>
-                                                <div class="row">
-                                                    <div class="col-6">
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="checkbox" value="agua" id="agua">
-                                                            <label class="form-check-label" for="agua">Agua potable</label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="checkbox" value="luz" id="luz">
-                                                            <label class="form-check-label" for="luz">Luz eléctrica</label>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="checkbox" value="drenaje" id="drenaje">
-                                                            <label class="form-check-label" for="drenaje">Drenaje</label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="checkbox" value="internet" id="internet">
-                                                            <label class="form-check-label" for="internet">Internet</label>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </fieldset>
-
-                                    <div class="d-flex justify-content-between">
-                                        <div></div>
-                                        <button type="button" class="btn btn-primary" onclick="siguientePaso(2)">
-                                            Siguiente <i class="bi bi-arrow-right"></i>
-                                        </button>
-                                    </div>
-                                </div>
+                                @include('estudios.paginas.estudio_paso1')
 
                                 <!-- PASO 2: Evaluación Economica y Familiar -->
-                                <div class="tab-pane fade" id="paso2" role="tabpanel">
-                                    <fieldset class="border rounded p-3 mb-4">
-                                        <legend class="float-none w-auto px-3 fw-bold text-dark">
-                                            <i class="bi bi-people-fill me-2"></i>Evaluación de la calidad, espacios y servicios de vivienda
-                                        </legend>
-
-                                        <div class="row">
-                                            <div class="col-md-4 mb-3">
-                                                <label for="total_familia" class="form-label">Total de Integrantes</label>
-                                                <input type="number" class="form-control" id="total_familia"
-                                                    min="1" value="1" placeholder="Ej: 5">
-                                            </div>
-
-                                            <div class="col-md-4 mb-3">
-                                                <label for="menores_edad" class="form-label">Menores de Edad</label>
-                                                <input type="number" class="form-control" id="menores_edad"
-                                                    min="0" value="0" placeholder="Ej: 2">
-                                            </div>
-
-                                            <div class="col-md-4 mb-3">
-                                                <label for="adultos_mayores" class="form-label">Adultos Mayores</label>
-                                                <input type="number" class="form-control" id="adultos_mayores"
-                                                    min="0" value="0" placeholder="Ej: 1">
-                                            </div>
-
-                                            <div class="col-md-6 mb-3">
-                                                <label for="escolaridad_jefe" class="form-label">Escolaridad del Jefe de Familia</label>
-                                                <select class="form-select" id="escolaridad_jefe">
-                                                    <option value="">Seleccionar escolaridad...</option>
-                                                    <option value="ninguna">Ninguna</option>
-                                                    <option value="primaria">Primaria</option>
-                                                    <option value="secundaria">Secundaria</option>
-                                                    <option value="preparatoria">Preparatoria/Bachillerato</option>
-                                                    <option value="universidad">Universidad</option>
-                                                    <option value="posgrado">Posgrado</option>
-                                                </select>
-                                            </div>
-
-                                            <div class="col-md-6 mb-3">
-                                                <label for="ocupacion_jefe" class="form-label">Ocupación del Jefe de Familia</label>
-                                                <input type="text" class="form-control" id="ocupacion_jefe"
-                                                    placeholder="Ej: Empleado, Comerciante, etc.">
-                                            </div>
-                                        </div>
-                                    </fieldset>
-
-                                    <div class="d-flex justify-content-between">
-                                        <button type="button" class="btn btn-secondary" onclick="anteriorPaso(1)">
-                                            <i class="bi bi-arrow-left"></i> Anterior
-                                        </button>
-                                        <button type="button" class="btn btn-primary" onclick="siguientePaso(3)">
-                                            Siguiente <i class="bi bi-arrow-right"></i>
-                                        </button>
-                                    </div>
-                                </div>
+                                @include('estudios.paginas.estudio_paso2')
 
                                 <!-- PASO 3: Necesidades y Observaciones -->
                                 <div class="tab-pane fade" id="paso3" role="tabpanel">
@@ -357,19 +239,22 @@
                                         <button type="button" class="btn btn-secondary" onclick="anteriorPaso(2)">
                                             <i class="bi bi-arrow-left"></i> Anterior
                                         </button>
-                                        <button type="submit" class="btn btn-success" onclick="return confirm('¿Estás seguro de guardar el estudio socioeconómico?')">
+                                        <button type="submit" class="btn btn-success"
+                                            onclick="return confirm('¿Estás seguro de guardar el estudio socioeconómico?')">
                                             <i class="bi bi-save"></i> Guardar Estudio
                                         </button>
                                     </div>
                                 </div>
                             </div>
                         </form>
-                    </form>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+
+
 <!-- Modal crear -->
 @include('estudios.familiares-modals.create')
 

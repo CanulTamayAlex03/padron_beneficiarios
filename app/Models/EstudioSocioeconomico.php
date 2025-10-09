@@ -5,13 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class EstudioSocioeconomico extends Model
 {
     use SoftDeletes;
 
     protected $table = 'estudio_socioeconomico';
-    
+
     protected $fillable = [
         'folio',
         'fecha_solicitud',
@@ -23,6 +24,11 @@ class EstudioSocioeconomico extends Model
     ];
 
     protected $dates = ['fecha_solicitud', 'deleted_at'];
+    
+    public function integrantesHogar()
+    {
+        return $this->hasMany(IntegranteHogar::class, 'estudio_socioeconomico_id');
+    }
 
     public function beneficiario(): BelongsTo
     {
@@ -48,4 +54,5 @@ class EstudioSocioeconomico extends Model
     {
         return $this->belongsTo(TipoPrograma::class, 'tipo_programa_id');
     }
+
 }

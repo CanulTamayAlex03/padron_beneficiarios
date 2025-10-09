@@ -89,10 +89,13 @@ class EstudioSocioeconomicoController extends Controller
 
     public function editarCompleto(Beneficiario $beneficiario, EstudioSocioeconomico $estudio)
     {
+
         if ($estudio->beneficiario_id != $beneficiario->id) {
             abort(404, 'El estudio no pertenece a este beneficiario');
         }
 
+        $estudio->load('integrantesHogar');
+        
         $estudios = $beneficiario->estudiosSocioeconomicos()->orderBy('created_at', 'desc')->get();
 
         $regiones = Region::activas()->get();

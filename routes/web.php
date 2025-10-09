@@ -8,6 +8,7 @@ use App\Http\Controllers\BeneficiarioController;
 use App\Http\Controllers\BeneficiarioFamiliarController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\EstudioSocioeconomicoController;
+use App\Http\Controllers\IntegranteHogarController;
 
 // ================== LOGIN / LOGOUT ==================
 Route::get('/', [AuthController::class, 'showLoginForm'])->name('login');
@@ -63,6 +64,18 @@ Route::middleware('auth')->group(function () {
 
     Route::put('estudios/{estudio}', [EstudioSocioeconomicoController::class, 'update'])->name('estudios.update');
 
+    // ================== INTEGRANTES DEL HOGAR ==================
+    Route::post('integrantes-hogar', [IntegranteHogarController::class, 'store'])
+        ->name('integrantes-hogar.store')
+        ->middleware('auth');
+
+    Route::put('integrantes-hogar/{integrante}', [IntegranteHogarController::class, 'update'])
+        ->name('integrantes-hogar.update')
+        ->middleware('auth');
+
+    Route::delete('integrantes-hogar/{integrante}', [IntegranteHogarController::class, 'destroy'])
+        ->name('integrantes-hogar.destroy')
+        ->middleware('auth');
 
     // ================== PANEL ADMINISTRADOR ==================
     Route::prefix('administrador')

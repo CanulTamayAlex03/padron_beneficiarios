@@ -1,7 +1,7 @@
 @can('editar beneficiarios')
 @extends('layouts.app')
 
-@section('title', 'Crear Estudio Socioeconómico')
+@section('title', 'Editar Estudio Socioeconómico')
 
 @section('content')
 <div class="container">
@@ -52,7 +52,6 @@
                     <!-- Inclusión de la sección de acompañantes -->
                     @include('estudios.paginas.acompanantes')
 
-
                     <!-- Formulario del Estudio Socioeconómico -->
                     <form action="{{ route('estudios.update', $estudio->id) }}" method="POST" id="estudioForm">
                         @csrf
@@ -62,125 +61,131 @@
 
                         <!-- Sección de datos básicos del estudio -->
                         <div class="card mb-4">
-                            <div class="card mb-4">
-                                <div class="card-header bg-secondary text-white">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <h5 class="mb-0">
-                                            <i class="bi bi-card-checklist me-2"></i>
-                                            Editar Estudio
-                                        </h5>
+                            <div class="card-header bg-secondary text-white">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-card-checklist me-2"></i>
+                                        Editar Estudio
+                                    </h5>
 
-                                        <!-- Select de navegación entre estudios -->
-                                        <div class="d-flex align-items-center">
-                                            <span class="text-white me-2">Estudio:</span>
-                                            <select class="form-select form-select-sm w-auto" id="selectorEstudios"
-                                                onchange="if(this.value) window.location.href = this.value;">
-                                                @foreach($estudios as $est)
-                                                <option value="{{ route('beneficiarios.estudios.editar', [
-                            'beneficiario' => $beneficiario->id, 
-                            'estudio' => $est->id
-                        ]) }}"
-                                                    {{ $est->id == $estudio->id ? 'selected' : '' }}>
+                                    <!-- Select de navegación entre estudios -->
+                                    <div class="d-flex align-items-center">
+                                        <span class="text-white me-2">Estudio:</span>
+                                        <select class="form-select form-select-sm w-auto" id="selectorEstudios"
+                                            onchange="if(this.value) window.location.href = this.value;">
+                                            @foreach($estudios as $est)
+                                            <option value="{{ route('beneficiarios.estudios.editar', [
+                                'beneficiario' => $beneficiario->id, 
+                                'estudio' => $est->id
+                            ]) }}"
+                                                {{ $est->id == $estudio->id ? 'selected' : '' }}>
 
-                                                    @if($est->folio)
-                                                    ({{ $est->folio }})
-                                                    @endif
-                                                    - {{ $est->created_at->format('d/m/Y') }}
-                                                </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-
-                                        <a href="{{ route('estudios.create', $beneficiario->id) }}"
-                                            class="btn btn-success btn-sm ms-2">
-                                            <i class="bi bi-plus-circle"></i> Nuevo Estudio
-                                        </a>
+                                                @if($est->folio)
+                                                ({{ $est->folio }})
+                                                @endif
+                                                - {{ $est->created_at->format('d/m/Y') }}
+                                            </option>
+                                            @endforeach
+                                        </select>
                                     </div>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-4 mb-3">
-                                            <label for="folio" class="form-label">Folio </label>
-                                            <input type="text" class="form-control" id="folio" name="folio"
-                                                value="{{ $estudio->folio }}" readonly>
-                                            <div class="form-text">El folio no se puede modificar</div>
-                                            @error('folio')
-                                            <div class="text-danger small">{{ $message }}</div>
-                                            @enderror
-                                        </div>
 
-                                        <div class="col-md-4 mb-3">
-                                            <label for="fecha_solicitud" class="form-label">Fecha de Solicitud *</label>
-                                            <input type="date" class="form-control" id="fecha_solicitud" name="fecha_solicitud"
-                                                value="{{ $estudio->fecha_solicitud->format('Y-m-d') }}" required>
-                                            @error('fecha_solicitud')
-                                            <div class="text-danger small">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-
-                                        <div class="col-md-4 mb-3">
-                                            <label for="region_id" class="form-label">Región *</label>
-                                            <select class="form-select" id="region_id" name="region_id" required>
-                                                <option value="">Seleccionar región...</option>
-                                                @foreach($regiones as $region)
-                                                <option value="{{ $region->id }}"
-                                                    {{ $estudio->region_id == $region->id ? 'selected' : '' }}>
-                                                    {{ $region->nombre_region }}
-                                                </option>
-                                                @endforeach
-                                            </select>
-                                            @error('region_id')
-                                            <div class="text-danger small">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-
-                                        <div class="col-md-6 mb-3">
-                                            <label for="solicitud_id" class="form-label">Tipo de Solicitud *</label>
-                                            <select class="form-select" id="solicitud_id" name="solicitud_id" required>
-                                                <option value="">Seleccionar solicitud...</option>
-                                                @foreach($solicitudes as $solicitud)
-                                                <option value="{{ $solicitud->id }}"
-                                                    {{ $estudio->solicitud_id == $solicitud->id ? 'selected' : '' }}>
-                                                    {{ $solicitud->nombre_solicitud }}
-                                                </option>
-                                                @endforeach
-                                            </select>
-                                            @error('solicitud_id')
-                                            <div class="text-danger small">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-
-                                        <div class="col-md-6 mb-3">
-                                            <label for="programa_id" class="form-label">Programa *</label>
-                                            <select class="form-select" id="programa_id" name="programa_id" required>
-                                                <option value="">Seleccionar programa...</option>
-                                                @foreach($programas as $programa)
-                                                <option value="{{ $programa->id }}"
-                                                    {{ $estudio->programa_id == $programa->id ? 'selected' : '' }}
-                                                    data-tipos='@json($programa->tiposPrograma)'>
-                                                    {{ $programa->nombre_programa }}
-                                                </option>
-                                                @endforeach
-                                            </select>
-                                            @error('programa_id')
-                                            <div class="text-danger small">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-
-                                        <div class="col-md-6 mb-3">
-                                            <label for="tipo_programa_id" class="form-label">Tipo de Programa *</label>
-                                            <select class="form-select" id="tipo_programa_id" name="tipo_programa_id" required>
-                                                <option value="">Cargando tipos...</option>
-                                            </select>
-                                            @error('tipo_programa_id')
-                                            <div class="text-danger small">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-                                    </div>
+                                    <a href="{{ route('estudios.create', $beneficiario->id) }}"
+                                        class="btn btn-success btn-sm ms-2">
+                                        <i class="bi bi-plus-circle"></i> Nuevo Estudio
+                                    </a>
                                 </div>
                             </div>
-                        </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label for="folio" class="form-label">Folio </label>
+                                        <input type="text" class="form-control" id="folio" name="folio"
+                                            value="{{ $estudio->folio }}" readonly>
+                                        <div class="form-text">El folio no se puede modificar</div>
+                                        @error('folio')
+                                        <div class="text-danger small">{{ $message }}</div>
+                                        @enderror
+                                    </div>
 
+                                    <div class="col-md-4 mb-3">
+                                        <label for="fecha_solicitud" class="form-label">Fecha de Solicitud *</label>
+                                        <input type="date" class="form-control" id="fecha_solicitud" name="fecha_solicitud"
+                                            value="{{ $estudio->fecha_solicitud->format('Y-m-d') }}" required>
+                                        @error('fecha_solicitud')
+                                        <div class="text-danger small">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-md-4 mb-3">
+                                        <label for="region_id" class="form-label">Región *</label>
+                                        <select class="form-select" id="region_id" name="region_id" required>
+                                            <option value="">Seleccionar región...</option>
+                                            @foreach($regiones as $region)
+                                            <option value="{{ $region->id }}"
+                                                {{ $estudio->region_id == $region->id ? 'selected' : '' }}>
+                                                {{ $region->nombre_region }}
+                                            </option>
+                                            @endforeach
+                                        </select>
+                                        @error('region_id')
+                                        <div class="text-danger small">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label for="solicitud_id" class="form-label">Tipo de Solicitud *</label>
+                                        <select class="form-select" id="solicitud_id" name="solicitud_id" required>
+                                            <option value="">Seleccionar solicitud...</option>
+                                            @foreach($solicitudes as $solicitud)
+                                            <option value="{{ $solicitud->id }}"
+                                                {{ $estudio->solicitud_id == $solicitud->id ? 'selected' : '' }}>
+                                                {{ $solicitud->nombre_solicitud }}
+                                            </option>
+                                            @endforeach
+                                        </select>
+                                        @error('solicitud_id')
+                                        <div class="text-danger small">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label for="programa_id" class="form-label">Programa *</label>
+                                        <select class="form-select" id="programa_id" name="programa_id" required>
+                                            <option value="">Seleccionar programa...</option>
+                                            @foreach($programas as $programa)
+                                            <option value="{{ $programa->id }}"
+                                                {{ $estudio->programa_id == $programa->id ? 'selected' : '' }}
+                                                data-tipos='@json($programa->tiposPrograma)'>
+                                                {{ $programa->nombre_programa }}
+                                            </option>
+                                            @endforeach
+                                        </select>
+                                        @error('programa_id')
+                                        <div class="text-danger small">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label for="tipo_programa_id" class="form-label">Tipo de Programa *</label>
+                                        <select class="form-select" id="tipo_programa_id" name="tipo_programa_id" required>
+                                            <option value="">Cargando tipos...</option>
+                                        </select>
+                                        @error('tipo_programa_id')
+                                        <div class="text-danger small">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <a href="{{ route('beneficiarios') }}" class="btn btn-secondary">
+                                        <i class="bi bi-x-circle"></i> Cancelar
+                                    </a>
+                                    <button type="submit" class="btn btn-warning">
+                                        <i class="bi bi-check-circle"></i> Actualizar Estudio
+                                    </button>
+                                </div>
+                            </div>
+                        </div>    
+                    </form>
 
                         <!-- Navegación por pasos -->
                         <ul class="nav nav-pills nav-justified mb-4" id="estudioTabs" role="tablist">
@@ -201,212 +206,80 @@
                             </li>
                         </ul>
 
-                        <form id="estudioForm">
-                            <div class="tab-content" id="estudioTabsContent">
+                        <!-- CONTENIDO DE LOS TABS (SIN FORMULARIO ANIDADO) -->
+                        <div class="tab-content" id="estudioTabsContent">
 
-                                <!-- PASO 1: Editar datos del beneficiario -->
-                                <div class="tab-pane fade show active" id="paso1" role="tabpanel">
-                                    <fieldset class="border rounded p-3 mb-4">
-                                        <legend class="float-none w-auto px-3 fw-bold text-dark">
-                                            <i class="bi bi-person-circle me-2"></i>Evaluación Económica y Familiar
-                                        </legend>
+                            <!-- PASO 1: Integrantes del hogar -->
+                            @include('estudios.paginas.integrantes-hogar')
+                            
+                            <!-- PASO 2: Evaluación Economica y Familiar -->
+                            @include('estudios.paginas.estudio_paso2')
 
-                                        <div class="row">
-                                            <div class="col-md-6 mb-3">
-                                                <label for="ingreso_mensual" class="form-label">Ingreso Mensual Familiar ($)</label>
-                                                <div class="input-group">
-                                                    <span class="input-group-text">$</span>
-                                                    <input type="number" class="form-control" id="ingreso_mensual"
-                                                        placeholder="0.00" min="0" step="0.01">
-                                                </div>
-                                                <div class="form-text">Ingreso total mensual del hogar</div>
-                                            </div>
+                            <!-- PASO 3: Necesidades y Observaciones -->
+                            <div class="tab-pane fade" id="paso3" role="tabpanel">
+                                <fieldset class="border rounded p-3 mb-4">
+                                    <legend class="float-none w-auto px-3 fw-bold text-dark">
+                                        <i class="bi bi-clipboard-check me-2"></i>Evaluación de la seguridad alimentaria
+                                    </legend>
 
-                                            <div class="col-md-6 mb-3">
-                                                <label for="personas_dependen" class="form-label">Personas que Dependen del Ingreso</label>
-                                                <input type="number" class="form-control" id="personas_dependen"
-                                                    min="1" value="1" placeholder="Ej: 4">
-                                                <div class="form-text">Incluyendo al beneficiario</div>
-                                            </div>
-
-                                            <div class="col-md-6 mb-3">
-                                                <label for="vivienda_tipo" class="form-label">Tipo de Vivienda</label>
-                                                <select class="form-select" id="vivienda_tipo">
-                                                    <option value="">Seleccionar tipo...</option>
-                                                    <option value="propia">Propia</option>
-                                                    <option value="rentada">Rentada</option>
-                                                    <option value="prestada">Prestada</option>
-                                                    <option value="hipotecada">Hipotecada</option>
-                                                    <option value="invasion">Invasión</option>
-                                                    <option value="otro">Otro</option>
-                                                </select>
-                                            </div>
-
-                                            <div class="col-md-6 mb-3">
-                                                <label class="form-label">Servicios Básicos Disponibles</label>
-                                                <div class="row">
-                                                    <div class="col-6">
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="checkbox" value="agua" id="agua">
-                                                            <label class="form-check-label" for="agua">Agua potable</label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="checkbox" value="luz" id="luz">
-                                                            <label class="form-check-label" for="luz">Luz eléctrica</label>
-                                                        </div>
+                                    <div class="row">
+                                        <div class="col-12 mb-3">
+                                            <label class="form-label">Necesidades Prioritarias Identificadas</label>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" value="alimentacion" id="alimentacion">
+                                                        <label class="form-check-label" for="alimentacion">Alimentación</label>
                                                     </div>
-                                                    <div class="col-6">
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="checkbox" value="drenaje" id="drenaje">
-                                                            <label class="form-check-label" for="drenaje">Drenaje</label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="checkbox" value="internet" id="internet">
-                                                            <label class="form-check-label" for="internet">Internet</label>
-                                                        </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" value="salud" id="salud">
+                                                        <label class="form-check-label" for="salud">Salud</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" value="educacion" id="educacion">
+                                                        <label class="form-check-label" for="educacion">Educación</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" value="vivienda" id="vivienda">
+                                                        <label class="form-check-label" for="vivienda">Vivienda</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" value="empleo" id="empleo">
+                                                        <label class="form-check-label" for="empleo">Empleo</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" value="vestimenta" id="vestimenta">
+                                                        <label class="form-check-label" for="vestimenta">Vestimenta</label>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </fieldset>
 
-                                    <div class="d-flex justify-content-between">
-                                        <div></div>
-                                        <button type="button" class="btn btn-primary" onclick="siguientePaso(2)">
-                                            Siguiente <i class="bi bi-arrow-right"></i>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <!-- PASO 2: Evaluación Economica y Familiar -->
-                                <div class="tab-pane fade" id="paso2" role="tabpanel">
-                                    <fieldset class="border rounded p-3 mb-4">
-                                        <legend class="float-none w-auto px-3 fw-bold text-dark">
-                                            <i class="bi bi-people-fill me-2"></i>Evaluación de la calidad, espacios y servicios de vivienda
-                                        </legend>
-
-                                        <div class="row">
-                                            <div class="col-md-4 mb-3">
-                                                <label for="total_familia" class="form-label">Total de Integrantes</label>
-                                                <input type="number" class="form-control" id="total_familia"
-                                                    min="1" value="1" placeholder="Ej: 5">
-                                            </div>
-
-                                            <div class="col-md-4 mb-3">
-                                                <label for="menores_edad" class="form-label">Menores de Edad</label>
-                                                <input type="number" class="form-control" id="menores_edad"
-                                                    min="0" value="0" placeholder="Ej: 2">
-                                            </div>
-
-                                            <div class="col-md-4 mb-3">
-                                                <label for="adultos_mayores" class="form-label">Adultos Mayores</label>
-                                                <input type="number" class="form-control" id="adultos_mayores"
-                                                    min="0" value="0" placeholder="Ej: 1">
-                                            </div>
-
-                                            <div class="col-md-6 mb-3">
-                                                <label for="escolaridad_jefe" class="form-label">Escolaridad del Jefe de Familia</label>
-                                                <select class="form-select" id="escolaridad_jefe">
-                                                    <option value="">Seleccionar escolaridad...</option>
-                                                    <option value="ninguna">Ninguna</option>
-                                                    <option value="primaria">Primaria</option>
-                                                    <option value="secundaria">Secundaria</option>
-                                                    <option value="preparatoria">Preparatoria/Bachillerato</option>
-                                                    <option value="universidad">Universidad</option>
-                                                    <option value="posgrado">Posgrado</option>
-                                                </select>
-                                            </div>
-
-                                            <div class="col-md-6 mb-3">
-                                                <label for="ocupacion_jefe" class="form-label">Ocupación del Jefe de Familia</label>
-                                                <input type="text" class="form-control" id="ocupacion_jefe"
-                                                    placeholder="Ej: Empleado, Comerciante, etc.">
-                                            </div>
+                                        <div class="col-12 mb-3">
+                                            <label for="observaciones" class="form-label">Observaciones Generales</label>
+                                            <textarea class="form-control" id="observaciones" rows="3"
+                                                placeholder="Describa la situación socioeconómica general del beneficiario y su familia..."></textarea>
                                         </div>
-                                    </fieldset>
 
-                                    <div class="d-flex justify-content-between">
-                                        <button type="button" class="btn btn-secondary" onclick="anteriorPaso(1)">
-                                            <i class="bi bi-arrow-left"></i> Anterior
-                                        </button>
-                                        <button type="button" class="btn btn-primary" onclick="siguientePaso(3)">
-                                            Siguiente <i class="bi bi-arrow-right"></i>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <!-- PASO 3: Necesidades y Observaciones -->
-                                <div class="tab-pane fade" id="paso3" role="tabpanel">
-                                    <fieldset class="border rounded p-3 mb-4">
-                                        <legend class="float-none w-auto px-3 fw-bold text-dark">
-                                            <i class="bi bi-clipboard-check me-2"></i>Evaluación de la seguridad alimentaria
-                                        </legend>
-
-                                        <div class="row">
-                                            <div class="col-12 mb-3">
-                                                <label class="form-label">Necesidades Prioritarias Identificadas</label>
-                                                <div class="row">
-                                                    <div class="col-md-6">
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="checkbox" value="alimentacion" id="alimentacion">
-                                                            <label class="form-check-label" for="alimentacion">Alimentación</label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="checkbox" value="salud" id="salud">
-                                                            <label class="form-check-label" for="salud">Salud</label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="checkbox" value="educacion" id="educacion">
-                                                            <label class="form-check-label" for="educacion">Educación</label>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="checkbox" value="vivienda" id="vivienda">
-                                                            <label class="form-check-label" for="vivienda">Vivienda</label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="checkbox" value="empleo" id="empleo">
-                                                            <label class="form-check-label" for="empleo">Empleo</label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="checkbox" value="vestimenta" id="vestimenta">
-                                                            <label class="form-check-label" for="vestimenta">Vestimenta</label>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="col-12 mb-3">
-                                                <label for="observaciones" class="form-label">Observaciones Generales</label>
-                                                <textarea class="form-control" id="observaciones" rows="3"
-                                                    placeholder="Describa la situación socioeconómica general del beneficiario y su familia..."></textarea>
-                                            </div>
-
-                                            <div class="col-12 mb-3">
-                                                <label for="recomendaciones" class="form-label">Recomendaciones y Apoyos Sugeridos</label>
-                                                <textarea class="form-control" id="recomendaciones" rows="2"
-                                                    placeholder="Sugerencias de apoyos o programas que podrían beneficiar al solicitante..."></textarea>
-                                            </div>
+                                        <div class="col-12 mb-3">
+                                            <label for="recomendaciones" class="form-label">Recomendaciones y Apoyos Sugeridos</label>
+                                            <textarea class="form-control" id="recomendaciones" rows="2"
+                                                placeholder="Sugerencias de apoyos o programas que podrían beneficiar al solicitante..."></textarea>
                                         </div>
-                                    </fieldset>
-                                    <div class="d-flex justify-content-between">
-                                        <a href="{{ route('beneficiarios') }}" class="btn btn-secondary">
-                                            <i class="bi bi-x-circle"></i> Cancelar
-                                        </a>
-                                        <button type="submit" class="btn btn-warning">
-                                            <i class="bi bi-check-circle"></i> Actualizar Estudio
-                                        </button>
                                     </div>
-                                </div>
+                                </fieldset>
+                                
                             </div>
-                        </form>
-                    </form>
+                        </div>
+                        <!-- FIN DEL TAB CONTENT -->
                 </div>
             </div>
         </div>
     </div>
 </div>
+
 <!-- Modal crear -->
 @include('estudios.familiares-modals.create')
 
@@ -416,7 +289,6 @@
 @include('estudios.familiares-modals.delete', ['familiar' => $familiar])
 @endforeach
 @endcan
-
 
 <style>
     fieldset {

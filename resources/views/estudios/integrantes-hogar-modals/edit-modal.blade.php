@@ -15,19 +15,19 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label>Nombre(s) *</label>
-                            <input type="text" name="nombres" class="form-control" value="{{ $integrante->nombres }}" required>
+                            <input type="text" name="nombres" class="form-control" value="{{ $integrante->nombres }}">
                         </div>
                         <div class="col-md-6 mb-3">
                             <label>Apellidos *</label>
-                            <input type="text" name="apellidos" class="form-control" value="{{ $integrante->apellidos }}" required>
+                            <input type="text" name="apellidos" class="form-control" value="{{ $integrante->apellidos }}">
                         </div>
                         <div class="col-md-4 mb-3">
                             <label>Edad *</label>
-                            <input type="number" name="edad" class="form-control" min="0" max="120" value="{{ $integrante->edad }}" required>
+                            <input type="number" name="edad" class="form-control" min="0" max="120" value="{{ $integrante->edad }}">
                         </div>
                         <div class="col-md-4 mb-3">
                             <label>Parentesco *</label>
-                            <select name="parentesco" class="form-select" required>
+                            <select name="parentesco" class="form-select">
                                 <option value="">Seleccione...</option>
                                 <option value="Jefe(a) de familia" {{ $integrante->parentesco == 'Jefe(a) de familia' ? 'selected' : '' }}>Jefe(a) de familia</option>
                                 <option value="Cónyuge" {{ $integrante->parentesco == 'Cónyuge' ? 'selected' : '' }}>Cónyuge</option>
@@ -41,7 +41,7 @@
                         </div>
                         <div class="col-md-4 mb-3">
                             <label>Ingreso mensual *</label>
-                            <input type="number" name="ingreso_mensual" class="form-control" step="0.01" min="0" value="{{ $integrante->ingreso_mensual }}" required>
+                            <input type="number" name="ingreso_mensual" class="form-control" step="0.01" min="0" value="{{ $integrante->ingreso_mensual }}">
                         </div>
                     </div>
                 </div>

@@ -12,6 +12,9 @@ use Illuminate\Http\Request;
 use App\Models\Ocupacion;
 use App\Models\Estado;
 use App\Models\Municipio;
+use App\Models\LineaConeval;
+use App\Models\ServicioSalud;
+use App\Models\Escolaridad;
 use Illuminate\Support\Facades\Log;
 
 class EstudioSocioeconomicoController extends Controller
@@ -23,7 +26,8 @@ class EstudioSocioeconomicoController extends Controller
             'region',
             'solicitud',
             'programa',
-            'tipoPrograma'
+            'tipoPrograma',
+            'lineaConeval'
         ])->paginate(10);
 
         return view('estudios-socioeconomicos.index', compact('estudios'));
@@ -38,13 +42,21 @@ class EstudioSocioeconomicoController extends Controller
         $programas = Programa::with('tiposPrograma')->get();
         $tiposPrograma = TipoPrograma::all();
 
+        $lineasConeval = LineaConeval::where('periodo', '2025-03-01')->get();
+
+        $serviciosSalud = ServicioSalud::all();
+        $escolaridades = Escolaridad::all();
+
         return view('estudios.create', compact(
             'beneficiario',
             'estudio',
             'regiones',
             'solicitudes',
             'programas',
-            'tiposPrograma'
+            'tiposPrograma',
+            'lineasConeval',
+            'serviciosSalud',
+            'escolaridades'
         ));
     }
 
@@ -57,7 +69,18 @@ class EstudioSocioeconomicoController extends Controller
             'region_id' => 'required|exists:region,id',
             'solicitud_id' => 'required|exists:solicitud,id',
             'programa_id' => 'required|exists:programa,id',
-            'tipo_programa_id' => 'required|exists:tipo_programa,id'
+            'tipo_programa_id' => 'required|exists:tipo_programa,id',
+            'linea_coneval_id' => 'nullable|exists:lineas_coneval,id',
+
+            'tipo_piso' => 'nullable|string|max:50',
+            'tipo_techo' => 'nullable|string|max:50',
+            'agua_alimentos' => 'nullable|string|max:50',
+            'medio_cocina' => 'nullable|string|max:50',
+            'vivienda' => 'nullable|string|max:50',
+            'servicio_sanitario' => 'nullable|string|max:50',
+            'electricidad' => 'nullable|boolean',
+            'cuartos_dormir' => 'nullable|integer|min:0',
+            'razon_mayor' => 'nullable|boolean',
         ]);
 
         try {
@@ -81,7 +104,8 @@ class EstudioSocioeconomicoController extends Controller
             'region',
             'solicitud',
             'programa',
-            'tipoPrograma'
+            'tipoPrograma',
+            'lineaConeval'
         ]);
 
         return view('estudios-socioeconomicos.show', compact('estudio'));
@@ -89,13 +113,13 @@ class EstudioSocioeconomicoController extends Controller
 
     public function editarCompleto(Beneficiario $beneficiario, EstudioSocioeconomico $estudio)
     {
-
         if ($estudio->beneficiario_id != $beneficiario->id) {
             abort(404, 'El estudio no pertenece a este beneficiario');
         }
 
-        $estudio->load('integrantesHogar');
-        
+        $estudio->load(['integrantesHogar', 'lineaConeval']);
+        $totalPersonas = $estudio->integrantesHogar->count();
+
         $estudios = $beneficiario->estudiosSocioeconomicos()->orderBy('created_at', 'desc')->get();
 
         $regiones = Region::activas()->get();
@@ -107,6 +131,11 @@ class EstudioSocioeconomicoController extends Controller
         $estados = Estado::orderBy('nombre')->get();
         $municipios = Municipio::orderBy('descripcion')->get();
 
+        $lineasConeval = LineaConeval::where('periodo', '2025-03-01')->get();
+
+        $serviciosSalud = ServicioSalud::all();
+        $escolaridades = Escolaridad::all();
+
         return view('beneficiarios.editar-completo', compact(
             'beneficiario',
             'estudio',
@@ -117,7 +146,11 @@ class EstudioSocioeconomicoController extends Controller
             'tiposPrograma',
             'ocupaciones',
             'estados',
-            'municipios'
+            'municipios',
+            'lineasConeval',
+            'serviciosSalud',
+            'escolaridades',
+            'totalPersonas',
         ));
     }
 
@@ -130,7 +163,18 @@ class EstudioSocioeconomicoController extends Controller
             'region_id' => 'required|exists:region,id',
             'solicitud_id' => 'required|exists:solicitud,id',
             'programa_id' => 'required|exists:programa,id',
-            'tipo_programa_id' => 'required|exists:tipo_programa,id'
+            'tipo_programa_id' => 'required|exists:tipo_programa,id',
+            'linea_coneval_id' => 'nullable|exists:lineas_coneval,id',
+
+            'tipo_piso' => 'nullable|string|max:50',
+            'tipo_techo' => 'nullable|string|max:50',
+            'agua_alimentos' => 'nullable|string|max:50',
+            'medio_cocina' => 'nullable|string|max:50',
+            'vivienda' => 'nullable|string|max:50',
+            'servicio_sanitario' => 'nullable|string|max:50',
+            'electricidad' => 'nullable|boolean',
+            'cuartos_dormir' => 'nullable|integer|min:0',
+            'razon_mayor' => 'nullable|boolean',
         ]);
 
         try {
@@ -175,6 +219,36 @@ class EstudioSocioeconomicoController extends Controller
         } catch (\Exception $e) {
             Log::error('Error al obtener tipos de programa: ' . $e->getMessage());
             return response()->json(['error' => 'Error interno del servidor'], 500);
+        }
+    }
+
+
+    public function updateConeval(Request $request, EstudioSocioeconomico $estudio)
+    {
+        $validated = $request->validate([
+            'linea_coneval_id' => 'required|exists:lineas_coneval,id',
+            'coneval_active' => 'required|boolean'
+        ]);
+
+        try {
+            $estudio->update($validated);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Datos CONEVAL actualizados correctamente',
+                'data' => [
+                    'linea_coneval_id' => $estudio->linea_coneval_id,
+                    'coneval_active' => $estudio->coneval_active,
+                    'linea_coneval' => $estudio->lineaConeval
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error al actualizar datos CONEVAL: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al actualizar los datos CONEVAL: ' . $e->getMessage()
+            ], 500);
         }
     }
 }

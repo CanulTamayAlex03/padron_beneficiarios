@@ -9,6 +9,7 @@ use App\Http\Controllers\BeneficiarioFamiliarController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\EstudioSocioeconomicoController;
 use App\Http\Controllers\IntegranteHogarController;
+use App\Http\Controllers\LineaConevalController;
 
 // ================== LOGIN / LOGOUT ==================
 Route::get('/', [AuthController::class, 'showLoginForm'])->name('login');
@@ -64,6 +65,12 @@ Route::middleware('auth')->group(function () {
 
     Route::put('estudios/{estudio}', [EstudioSocioeconomicoController::class, 'update'])->name('estudios.update');
 
+    Route::post('estudios/{estudio}/update-linea-coneval', [EstudioSocioeconomicoController::class, 'updateLineaConeval'])
+        ->name('estudios.update-linea-coneval');
+        
+    Route::post('estudios/{estudio}/update-coneval', [EstudioSocioeconomicoController::class, 'updateConeval'])
+        ->name('estudios.update-coneval');
+
     // ================== INTEGRANTES DEL HOGAR ==================
     Route::post('integrantes-hogar', [IntegranteHogarController::class, 'store'])
         ->name('integrantes-hogar.store')
@@ -76,6 +83,12 @@ Route::middleware('auth')->group(function () {
     Route::delete('integrantes-hogar/{integrante}', [IntegranteHogarController::class, 'destroy'])
         ->name('integrantes-hogar.destroy')
         ->middleware('auth');
+
+    // ================== LINEAS CONEVAL ==================
+    Route::resource('lineas-coneval', LineaConevalController::class);
+
+    Route::get('lineas-coneval/por-periodo', [LineaConevalController::class, 'getByPeriodo'])
+        ->name('lineas-coneval.por-periodo');
 
     // ================== PANEL ADMINISTRADOR ==================
     Route::prefix('administrador')

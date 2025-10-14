@@ -52,7 +52,7 @@
                     <!-- Inclusión de la sección de acompañantes -->
                     @include('estudios.paginas.acompanantes')
 
-                    <!-- Formulario del Estudio Socioeconómico -->
+                    <!-- UN SOLO FORMULARIO PARA TODO -->
                     <form action="{{ route('estudios.update', $estudio->id) }}" method="POST" id="estudioForm">
                         @csrf
                         @method('PUT')
@@ -110,7 +110,7 @@
                                     <div class="col-md-4 mb-3">
                                         <label for="fecha_solicitud" class="form-label">Fecha de Solicitud *</label>
                                         <input type="date" class="form-control" id="fecha_solicitud" name="fecha_solicitud"
-                                            value="{{ $estudio->fecha_solicitud->format('Y-m-d') }}" required>
+                                            value="{{ $estudio->fecha_solicitud->format('Y-m-d') }}">
                                         @error('fecha_solicitud')
                                         <div class="text-danger small">{{ $message }}</div>
                                         @enderror
@@ -118,7 +118,7 @@
 
                                     <div class="col-md-4 mb-3">
                                         <label for="region_id" class="form-label">Región *</label>
-                                        <select class="form-select" id="region_id" name="region_id" required>
+                                        <select class="form-select" id="region_id" name="region_id">
                                             <option value="">Seleccionar región...</option>
                                             @foreach($regiones as $region)
                                             <option value="{{ $region->id }}"
@@ -134,7 +134,7 @@
 
                                     <div class="col-md-6 mb-3">
                                         <label for="solicitud_id" class="form-label">Tipo de Solicitud *</label>
-                                        <select class="form-select" id="solicitud_id" name="solicitud_id" required>
+                                        <select class="form-select" id="solicitud_id" name="solicitud_id">
                                             <option value="">Seleccionar solicitud...</option>
                                             @foreach($solicitudes as $solicitud)
                                             <option value="{{ $solicitud->id }}"
@@ -150,7 +150,7 @@
 
                                     <div class="col-md-6 mb-3">
                                         <label for="programa_id" class="form-label">Programa *</label>
-                                        <select class="form-select" id="programa_id" name="programa_id" required>
+                                        <select class="form-select" id="programa_id" name="programa_id">
                                             <option value="">Seleccionar programa...</option>
                                             @foreach($programas as $programa)
                                             <option value="{{ $programa->id }}"
@@ -167,7 +167,7 @@
 
                                     <div class="col-md-6 mb-3">
                                         <label for="tipo_programa_id" class="form-label">Tipo de Programa *</label>
-                                        <select class="form-select" id="tipo_programa_id" name="tipo_programa_id" required>
+                                        <select class="form-select" id="tipo_programa_id" name="tipo_programa_id">
                                             <option value="">Cargando tipos...</option>
                                         </select>
                                         @error('tipo_programa_id')
@@ -184,8 +184,7 @@
                                     </button>
                                 </div>
                             </div>
-                        </div>    
-                    </form>
+                        </div>
 
                         <!-- Navegación por pasos -->
                         <ul class="nav nav-pills nav-justified mb-4" id="estudioTabs" role="tablist">
@@ -206,81 +205,26 @@
                             </li>
                         </ul>
 
-                        <!-- CONTENIDO DE LOS TABS (SIN FORMULARIO ANIDADO) -->
+                        <!-- CONTENIDO DE LOS PASOS DENTRO DEL MISMO FORMULARIO -->
                         <div class="tab-content" id="estudioTabsContent">
-
                             <!-- PASO 1: Integrantes del hogar -->
-                            @include('estudios.paginas.integrantes-hogar')
-                            
+                            @include('estudios.paginas.estudio_paso1')
+            
                             <!-- PASO 2: Evaluación Economica y Familiar -->
                             @include('estudios.paginas.estudio_paso2')
 
                             <!-- PASO 3: Necesidades y Observaciones -->
-                            <div class="tab-pane fade" id="paso3" role="tabpanel">
-                                <fieldset class="border rounded p-3 mb-4">
-                                    <legend class="float-none w-auto px-3 fw-bold text-dark">
-                                        <i class="bi bi-clipboard-check me-2"></i>Evaluación de la seguridad alimentaria
-                                    </legend>
-
-                                    <div class="row">
-                                        <div class="col-12 mb-3">
-                                            <label class="form-label">Necesidades Prioritarias Identificadas</label>
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" value="alimentacion" id="alimentacion">
-                                                        <label class="form-check-label" for="alimentacion">Alimentación</label>
-                                                    </div>
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" value="salud" id="salud">
-                                                        <label class="form-check-label" for="salud">Salud</label>
-                                                    </div>
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" value="educacion" id="educacion">
-                                                        <label class="form-check-label" for="educacion">Educación</label>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" value="vivienda" id="vivienda">
-                                                        <label class="form-check-label" for="vivienda">Vivienda</label>
-                                                    </div>
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" value="empleo" id="empleo">
-                                                        <label class="form-check-label" for="empleo">Empleo</label>
-                                                    </div>
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" value="vestimenta" id="vestimenta">
-                                                        <label class="form-check-label" for="vestimenta">Vestimenta</label>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="col-12 mb-3">
-                                            <label for="observaciones" class="form-label">Observaciones Generales</label>
-                                            <textarea class="form-control" id="observaciones" rows="3"
-                                                placeholder="Describa la situación socioeconómica general del beneficiario y su familia..."></textarea>
-                                        </div>
-
-                                        <div class="col-12 mb-3">
-                                            <label for="recomendaciones" class="form-label">Recomendaciones y Apoyos Sugeridos</label>
-                                            <textarea class="form-control" id="recomendaciones" rows="2"
-                                                placeholder="Sugerencias de apoyos o programas que podrían beneficiar al solicitante..."></textarea>
-                                        </div>
-                                    </div>
-                                </fieldset>
-                                
-                            </div>
+                            @include('estudios.paginas.estudio_paso3')
                         </div>
-                        <!-- FIN DEL TAB CONTENT -->
+
+                    </form> <!-- CIERRE DEL FORMULARIO ÚNICO -->
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal crear -->
+<!-- MODALES FUERA DEL FORMULARIO PRINCIPAL -->
 @include('estudios.familiares-modals.create')
 
 @foreach($beneficiario->familiares as $familiar)
@@ -288,6 +232,11 @@
 @include('estudios.familiares-modals.edit', ['familiar' => $familiar])
 @include('estudios.familiares-modals.delete', ['familiar' => $familiar])
 @endforeach
+
+<!-- MODALES DE INTEGRANTES DEL HOGAR FUERA DEL FORMULARIO -->
+@include('estudios.integrantes-hogar-modals.create-modal')
+@include('estudios.integrantes-hogar-modals.edit-modal')
+@include('estudios.integrantes-hogar-modals.delete-modal')
 @endcan
 
 <style>

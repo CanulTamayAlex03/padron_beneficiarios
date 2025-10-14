@@ -1,4 +1,3 @@
-
 @if(isset($estudio) && $estudio->id)
 <!-- Modal para crear integrante -->
 <div class="modal fade" id="createIntegranteModal" tabindex="-1" aria-hidden="true">
@@ -15,19 +14,19 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label>Nombre(s) *</label>
-                            <input type="text" name="nombres" class="form-control" required>
+                            <input type="text" name="nombres" class="form-control">
                         </div>
                         <div class="col-md-6 mb-3">
                             <label>Apellidos *</label>
-                            <input type="text" name="apellidos" class="form-control" required>
+                            <input type="text" name="apellidos" class="form-control">
                         </div>
                         <div class="col-md-4 mb-3">
                             <label>Edad *</label>
-                            <input type="number" name="edad" class="form-control" min="0" max="120" required>
+                            <input type="number" name="edad" class="form-control" min="0" max="120">
                         </div>
                         <div class="col-md-4 mb-3">
                             <label>Parentesco *</label>
-                            <select name="parentesco" class="form-select" required>
+                            <select name="parentesco" class="form-select">
                                 <option value="">Seleccione...</option>
                                 <option value="Jefe(a) de familia">Jefe(a) de familia</option>
                                 <option value="Cónyuge">Cónyuge</option>
@@ -41,7 +40,7 @@
                         </div>
                         <div class="col-md-4 mb-3">
                             <label>Ingreso mensual *</label>
-                            <input type="number" name="ingreso_mensual" class="form-control" step="0.01" min="0" required>
+                            <input type="number" name="ingreso_mensual" class="form-control" step="0.01" min="0">
                         </div>
                     </div>
                 </div>

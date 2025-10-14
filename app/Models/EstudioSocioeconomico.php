@@ -20,11 +20,33 @@ class EstudioSocioeconomico extends Model
         'region_id',
         'solicitud_id',
         'programa_id',
-        'tipo_programa_id'
+        'tipo_programa_id',
+        'linea_coneval_id',
+        'coneval_active',
+        'servicio_salud_id',
+        'escolaridad_id',
+        'tipo_piso',
+        'tipo_techo',
+        'agua_alimentos',
+        'medio_cocina',
+        'vivienda',
+        'servicio_sanitario',
+        'electricidad',
+        'cuartos_dormir',
+        'razon_mayor',
+
     ];
 
     protected $dates = ['fecha_solicitud', 'deleted_at'];
-    
+
+    protected $casts = [
+        'electricidad' => 'boolean',
+        'coneval_active' => 'boolean',
+        'razon_mayor' => 'boolean',
+        'cuartos_dormir' => 'integer',
+        'fecha_solicitud' => 'date'
+    ];
+
     public function integrantesHogar()
     {
         return $this->hasMany(IntegranteHogar::class, 'estudio_socioeconomico_id');
@@ -55,4 +77,18 @@ class EstudioSocioeconomico extends Model
         return $this->belongsTo(TipoPrograma::class, 'tipo_programa_id');
     }
 
+    public function lineaConeval()
+    {
+        return $this->belongsTo(LineaConeval::class, 'linea_coneval_id');
+    }
+
+    public function servicioSalud()
+    {
+        return $this->belongsTo(ServicioSalud::class, 'servicio_salud_id');
+    }
+
+    public function escolaridad()
+    {
+        return $this->belongsTo(Escolaridad::class, 'escolaridad_id');
+    }
 }

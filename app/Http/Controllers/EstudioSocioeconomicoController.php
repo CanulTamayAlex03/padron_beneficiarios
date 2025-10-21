@@ -70,7 +70,11 @@ class EstudioSocioeconomicoController extends Controller
             'solicitud_id' => 'required|exists:solicitud,id',
             'programa_id' => 'required|exists:programa,id',
             'tipo_programa_id' => 'required|exists:tipo_programa,id',
+
             'linea_coneval_id' => 'nullable|exists:lineas_coneval,id',
+            'coneval_active' => 'nullable|boolean',
+            'servicio_salud_id' => 'nullable|exists:servicio_salud,id',
+            'escolaridad_id' => 'nullable|exists:escolaridad,id',
 
             'tipo_piso' => 'nullable|string|max:50',
             'tipo_techo' => 'nullable|string|max:50',
@@ -81,13 +85,32 @@ class EstudioSocioeconomicoController extends Controller
             'electricidad' => 'nullable|boolean',
             'cuartos_dormir' => 'nullable|integer|min:0',
             'razon_mayor' => 'nullable|boolean',
+
+            'preocupa_sin_alimentos' => 'nullable|boolean',
+            'alimentos_no_alcanzaron' => 'nullable|boolean',
+            'dieta_poco_variada_adultos' => 'nullable|boolean',
+            'adultos_comieron_menos' => 'nullable|boolean',
+            'adultos_hambre_sin_comer' => 'nullable|boolean',
+            'adultos_dejaron_comer_dia' => 'nullable|boolean',
+            'menores_dieta_poco_variada' => 'nullable|boolean',
+            'menores_comieron_menos' => 'nullable|boolean',
+            'menores_hambre_sin_comer' => 'nullable|boolean',
+            'menores_sin_comer_dia' => 'nullable|boolean',
+            'menores_sin_alimentos_saludables' => 'nullable|boolean',
+            'menores_dieta_alimentos_baratos' => 'nullable|boolean'
         ]);
 
         try {
-            EstudioSocioeconomico::create($validated);
+            $resultados = $this->calcularResultadosEstudios(new EstudioSocioeconomico(), $validated);
 
-            return redirect()->route('beneficiarios')
-                ->with('success', 'Estudio socioeconómico creado exitosamente');
+            $datosCompletos = array_merge($validated, $resultados);
+
+            $estudio = EstudioSocioeconomico::create($datosCompletos);
+
+            return redirect()->route('beneficiarios.estudios.editar', [
+                'beneficiario' => $estudio->beneficiario_id,
+                'estudio' => $estudio->id
+            ])->with('success', 'Estudio socioeconómico creado exitosamente. Complete la información restante.');
         } catch (\Exception $e) {
             Log::error('Error al crear estudio socioeconómico: ' . $e->getMessage());
 
@@ -165,6 +188,9 @@ class EstudioSocioeconomicoController extends Controller
             'programa_id' => 'required|exists:programa,id',
             'tipo_programa_id' => 'required|exists:tipo_programa,id',
             'linea_coneval_id' => 'nullable|exists:lineas_coneval,id',
+            'coneval_active' => 'nullable|boolean',
+            'servicio_salud_id' => 'nullable|exists:servicio_salud,id',
+            'escolaridad_id' => 'nullable|exists:escolaridad,id',
 
             'tipo_piso' => 'nullable|string|max:50',
             'tipo_techo' => 'nullable|string|max:50',
@@ -175,10 +201,27 @@ class EstudioSocioeconomicoController extends Controller
             'electricidad' => 'nullable|boolean',
             'cuartos_dormir' => 'nullable|integer|min:0',
             'razon_mayor' => 'nullable|boolean',
+
+            'preocupa_sin_alimentos' => 'nullable|boolean',
+            'alimentos_no_alcanzaron' => 'nullable|boolean',
+            'dieta_poco_variada_adultos' => 'nullable|boolean',
+            'adultos_comieron_menos' => 'nullable|boolean',
+            'adultos_hambre_sin_comer' => 'nullable|boolean',
+            'adultos_dejaron_comer_dia' => 'nullable|boolean',
+            'menores_dieta_poco_variada' => 'nullable|boolean',
+            'menores_comieron_menos' => 'nullable|boolean',
+            'menores_hambre_sin_comer' => 'nullable|boolean',
+            'menores_sin_comer_dia' => 'nullable|boolean',
+            'menores_sin_alimentos_saludables' => 'nullable|boolean',
+            'menores_dieta_alimentos_baratos' => 'nullable|boolean'
         ]);
 
         try {
-            $estudio->update($validated);
+            $resultados = $this->calcularResultadosEstudios($estudio, $validated);
+
+            $datosActualizados = array_merge($validated, $resultados);
+
+            $estudio->update($datosActualizados);
 
             return redirect()->route('beneficiarios.estudios.editar', [$estudio->beneficiario_id, $estudio->id])
                 ->with('success', 'Estudio socioeconómico actualizado exitosamente');
@@ -189,6 +232,10 @@ class EstudioSocioeconomicoController extends Controller
                 ->with('error', 'Error al actualizar el estudio socioeconómico: ' . $e->getMessage())
                 ->withInput();
         }
+
+        $request->merge([
+            'coneval_active' => $request->input('coneval_active', 0),
+        ]);
     }
 
     public function destroy(EstudioSocioeconomico $estudio)
@@ -250,5 +297,222 @@ class EstudioSocioeconomicoController extends Controller
                 'message' => 'Error al actualizar los datos CONEVAL: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    private function calcularResultadosEstudios($estudio, $datos)
+    {
+        $resultados = [];
+
+        $resultados['res_estudio_1'] = $this->calcularEstudio1($estudio, $datos);
+
+        $resultados['res_estudio_2'] = $this->calcularEstudio2($estudio, $datos);
+
+        $resultados['res_estudio_3'] = $this->calcularEstudio3($estudio, $datos);
+
+        $resultados['res_total'] = $this->calcularResultadoTotal($estudio, $resultados);
+
+        return $resultados;
+    }
+
+    private function calcularEstudio1($estudio, $datos)
+    {
+        $puntosConeval = isset($datos['coneval_active']) && $datos['coneval_active'] ? 3 : 0;
+
+        $puntosServicioSalud = 0;
+        if (isset($datos['servicio_salud_id']) && $datos['servicio_salud_id']) {
+            $servicio = ServicioSalud::find($datos['servicio_salud_id']);
+            $puntosServicioSalud = $servicio ? $servicio->puntos : 0;
+        }
+
+        $puntosEscolaridad = 0;
+        if (isset($datos['escolaridad_id']) && $datos['escolaridad_id']) {
+            $escolaridad = Escolaridad::find($datos['escolaridad_id']);
+            $puntosEscolaridad = $escolaridad ? $escolaridad->puntos : 0;
+        }
+
+        $puntosTotales = $puntosConeval + $puntosServicioSalud + $puntosEscolaridad;
+
+        if ($puntosTotales >= 1 && $puntosTotales <= 3) {
+            return 'Leve';
+        } elseif ($puntosTotales >= 4 && $puntosTotales <= 6) {
+            return 'Moderada';
+        } elseif ($puntosTotales >= 7 && $puntosTotales <= 9) {
+            return 'Severa';
+        } else {
+            return 'No aplica';
+        }
+    }
+
+    private function calcularEstudio2($estudio, $datos)
+    {
+        $calcularPuntosVivienda = function ($valor) {
+            $puntos = [
+                'Tierra' => 3,
+                'Cemento' => 2,
+                'Mosaico, madera, otro' => 1,
+                'Cantón, llantas, huano' => 3,
+                'Asbesto, madera, lamina' => 2,
+                'Cemento, piedra, block' => 1,
+                'Pozo' => 3,
+                'De la llave' => 2,
+                'Purificada' => 1,
+                'Carbón, leña' => 3,
+                'Gas' => 2,
+                'Parrilla eléctrica, otra' => 1,
+                'Rentada' => 3,
+                'Prestada' => 2,
+                'Propia o familiar' => 1,
+                'Ningún servicio' => 3,
+                'Letrina' => 2,
+                'Inodoro' => 1
+            ];
+            return $puntos[$valor] ?? 0;
+        };
+
+        $puntosElectricidad = (isset($datos['electricidad']) && $datos['electricidad'] == 0) ? 1 : 0;
+        $puntosPiso = isset($datos['tipo_piso']) ? $calcularPuntosVivienda($datos['tipo_piso']) : 0;
+        $puntosTecho = isset($datos['tipo_techo']) ? $calcularPuntosVivienda($datos['tipo_techo']) : 0;
+        $puntosAgua = isset($datos['agua_alimentos']) ? $calcularPuntosVivienda($datos['agua_alimentos']) : 0;
+        $puntosCocina = isset($datos['medio_cocina']) ? $calcularPuntosVivienda($datos['medio_cocina']) : 0;
+        $puntosVivienda = isset($datos['vivienda']) ? $calcularPuntosVivienda($datos['vivienda']) : 0;
+        $puntosSanitario = isset($datos['servicio_sanitario']) ? $calcularPuntosVivienda($datos['servicio_sanitario']) : 0;
+        $puntosRazon = (isset($datos['razon_mayor']) && $datos['razon_mayor'] == 1) ? 2 : 0;
+
+        $totalVivienda = $puntosElectricidad + $puntosPiso + $puntosTecho + $puntosAgua +
+            $puntosCocina + $puntosVivienda + $puntosSanitario + $puntosRazon;
+
+        if ($totalVivienda >= 16) {
+            return 'Severa';
+        } elseif ($totalVivienda >= 11) {
+            return 'Moderada';
+        } elseif ($totalVivienda >= 6) {
+            return 'Leve';
+        } else {
+            return 'No aplica';
+        }
+    }
+
+    private function calcularEstudio3($estudio, $datos)
+    {
+        $camposBloque1 = [
+            'preocupa_sin_alimentos',
+            'alimentos_no_alcanzaron',
+            'dieta_poco_variada_adultos',
+            'adultos_comieron_menos',
+            'adultos_hambre_sin_comer',
+            'adultos_dejaron_comer_dia'
+        ];
+
+        $camposBloque2 = [
+            'menores_dieta_poco_variada',
+            'menores_comieron_menos',
+            'menores_hambre_sin_comer',
+            'menores_sin_comer_dia',
+            'menores_sin_alimentos_saludables',
+            'menores_dieta_alimentos_baratos'
+        ];
+
+        $puntosBloque1 = 0;
+        foreach ($camposBloque1 as $campo) {
+            $puntosBloque1 += (isset($datos[$campo]) && $datos[$campo] == 1) ? 1 : 0;
+        }
+
+        $hayDatosBloque2 = false;
+        foreach ($camposBloque2 as $campo) {
+            if (isset($datos[$campo]) && !is_null($datos[$campo])) {
+                $hayDatosBloque2 = true;
+                break;
+            }
+        }
+
+        $puntosTotales = $puntosBloque1;
+
+        if ($hayDatosBloque2) {
+            $puntosBloque2 = 0;
+            foreach ($camposBloque2 as $campo) {
+                $puntosBloque2 += (isset($datos[$campo]) && $datos[$campo] == 1) ? 1 : 0;
+            }
+            $puntosTotales += $puntosBloque2;
+
+            if ($puntosTotales >= 8) {
+                return 'Severa';
+            } elseif ($puntosTotales >= 4) {
+                return 'Moderada';
+            } elseif ($puntosTotales >= 1) {
+                return 'Leve';
+            } else {
+                return 'No aplica';
+            }
+        } else {
+            if ($puntosTotales >= 5) {
+                return 'Severa';
+            } elseif ($puntosTotales >= 3) {
+                return 'Moderada';
+            } elseif ($puntosTotales >= 1) {
+                return 'Leve';
+            } else {
+                return 'No aplica';
+            }
+        }
+    }
+
+    private function calcularResultadoTotal($estudio, $resultados)
+    {
+        $severidades = [
+            'Severa' => 3,
+            'Moderada' => 2,
+            'Leve' => 1,
+            'No aplica' => 0
+        ];
+
+        $puntosEstudios = 0;
+        $estudiosValidos = 0;
+
+        foreach (['res_estudio_1', 'res_estudio_2', 'res_estudio_3'] as $estudioKey) {
+            if (isset($resultados[$estudioKey]) && $resultados[$estudioKey] !== 'No aplica') {
+                $puntosEstudios += $severidades[$resultados[$estudioKey]];
+                $estudiosValidos++;
+            }
+        }
+
+        $puntosOcupacion = 0;
+
+        if (!$estudio->relationLoaded('beneficiario')) {
+            $estudio->load('beneficiario.ocupacion');
+        }
+
+        if (
+            $estudio->beneficiario &&
+            $estudio->beneficiario->ocupacion &&
+            !is_null($estudio->beneficiario->ocupacion->puntos)
+        ) {
+            $puntosOcupacion = min((int) $estudio->beneficiario->ocupacion->puntos, 3);
+        }
+
+        $puntosTotales = $puntosEstudios + $puntosOcupacion;
+
+        if ($estudiosValidos === 0 && $puntosOcupacion === 0) {
+            return 'No aplica';
+        }
+
+        if ($puntosTotales >= 10 && $puntosTotales <= 12) {
+            return 'Severa';
+        } elseif ($puntosTotales >= 7 && $puntosTotales <= 9) {
+            return 'Moderada';
+        } elseif ($puntosTotales >= 4 && $puntosTotales <= 6) {
+            return 'Leve';
+        } else {
+            return 'No aplica';
+        }
+    }
+
+    public function vistaResultado(EstudioSocioeconomico $estudio, Request $request)
+    {
+        $index = $request->get('index', 1);
+
+        return view('componentes.resultado-estudio', [
+            'estudio' => $estudio->load(['beneficiario.ocupacion']),
+            'index' => $index
+        ]);
     }
 }

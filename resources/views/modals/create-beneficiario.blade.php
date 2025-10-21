@@ -160,7 +160,7 @@
                                 <select class="form-select" id="create_ocupacion_id" name="ocupacion_id" required>
                                     <option value="" disabled selected>Seleccione una ocupación</option>
                                     @foreach($ocupaciones as $ocupacion)
-                                    <option value="{{ $ocupacion->id }}">{{ $ocupacion->ocupacion }}</option>
+                                    <option value="{{ $ocupacion->id }}">{{ $ocupacion->ocupacion }} {{ $ocupacion->puntos}} (pts) </option>
                                     @endforeach
                                 </select>
                             </div>

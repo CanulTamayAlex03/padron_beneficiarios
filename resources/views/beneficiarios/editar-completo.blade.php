@@ -59,6 +59,15 @@
 
                         <input type="hidden" name="beneficiario_id" value="{{ $beneficiario->id }}">
 
+                        <input type="hidden" name="linea_coneval_id" id="linea_coneval_id_form" 
+                            value="{{ $estudio->linea_coneval_id ?? '' }}">
+                        <input type="hidden" name="coneval_active" id="coneval_active_form" 
+                            value="{{ $estudio->coneval_active ?? '' }}">
+                        <input type="hidden" name="servicio_salud_id" id="servicio_salud_id_form" 
+                            value="{{ $estudio->servicio_salud_id ?? '' }}">
+                        <input type="hidden" name="escolaridad_id" id="escolaridad_id_form" 
+                            value="{{ $estudio->escolaridad_id ?? '' }}">
+
                         <!-- Sección de datos básicos del estudio -->
                         <div class="card mb-4">
                             <div class="card-header bg-secondary text-white">
@@ -200,7 +209,7 @@
                             </li>
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link" id="paso3-tab" data-bs-toggle="pill" data-bs-target="#paso3" type="button" role="tab">
-                                    <i class="bi bi-3-circle me-1"></i>Evaluación de la seguridad alimentaria
+                                    <i class="bi bi-3-circle me-1"></i>Evaluación de seguridad alimentaria
                                 </button>
                             </li>
                         </ul>
@@ -216,8 +225,8 @@
                             <!-- PASO 3: Necesidades y Observaciones -->
                             @include('estudios.paginas.estudio_paso3')
                         </div>
-
-                    </form> <!-- CIERRE DEL FORMULARIO ÚNICO -->
+                    </form>
+                    @include('estudios.paginas.resultado_estudio')
                 </div>
             </div>
         </div>
@@ -309,7 +318,6 @@
 
             tipoProgramaSelect.innerHTML = '<option value="">Cargando tipos...</option>';
 
-            // Buscar la opción del programa seleccionado
             const programaOption = programaSelect.querySelector(`option[value="${programaId}"]`);
 
             if (!programaOption) {

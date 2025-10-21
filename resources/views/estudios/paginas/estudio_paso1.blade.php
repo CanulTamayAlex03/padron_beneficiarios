@@ -3,9 +3,12 @@
         <legend class="float-none w-auto px-3 fw-bold text-dark">
             <i class="bi bi-person-circle me-2"></i>Evaluación Económica y Familiar
         </legend>
-        @include('estudios.paginas.integrantes-hogar')
-    </fieldset>
 
+    
+        @include('estudios.paginas.integrantes-hogar')
+
+        
+    </fieldset>
 
     <div class="d-flex justify-content-between">
         <div></div>

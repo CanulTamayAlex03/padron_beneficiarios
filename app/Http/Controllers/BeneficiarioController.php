@@ -152,8 +152,13 @@ class BeneficiarioController extends Controller
             'telefono'               => 'nullable|string|max:15',
             'referencias_domicilio'  => 'nullable|string',
         ]);
+        $ocupacionAnterior = $beneficiario->ocupacion_id;
 
         $beneficiario->update($request->all());
+
+        if ($ocupacionAnterior != $beneficiario->ocupacion_id) {
+            $this->recalcularEstudiosPorCambioOcupacion($beneficiario);
+        }
 
         if ($request->ajax()) {
             return response()->json([
@@ -220,5 +225,107 @@ class BeneficiarioController extends Controller
             'estados',
             'municipios'
         ));
+    }
+
+    private function recalcularEstudiosPorCambioOcupacion(Beneficiario $beneficiario)
+    {
+        try {
+            $estudios = $beneficiario->estudiosSocioeconomicos;
+
+            foreach ($estudios as $estudio) {
+                $resultados = [
+                    'res_estudio_1' => $estudio->res_estudio_1,
+                    'res_estudio_2' => $estudio->res_estudio_2,
+                    'res_estudio_3' => $estudio->res_estudio_3
+                ];
+
+                $nuevoResTotal = $this->calcularResultadoTotalParaBeneficiario($estudio, $resultados);
+
+                if ($estudio->res_total !== $nuevoResTotal) {
+                    $estudio->update(['res_total' => $nuevoResTotal]);
+
+                    Log::info("Estudio {$estudio->id} actualizado por cambio de ocupación", [
+                        'beneficiario_id' => $beneficiario->id,
+                        'ocupacion_anterior' => $estudio->res_total,
+                        'ocupacion_nueva' => $nuevoResTotal
+                    ]);
+                }
+            }
+
+            Log::info("Recálculo completado para beneficiario {$beneficiario->id}", [
+                'estudios_actualizados' => $estudios->count()
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error al recalcular estudios por cambio de ocupación: ' . $e->getMessage());
+        }
+    }
+
+    private function calcularResultadoTotalParaBeneficiario($estudio, $resultados)
+    {
+        $severidades = [
+            'Severa' => 3,
+            'Moderada' => 2,
+            'Leve' => 1,
+            'No aplica' => 0
+        ];
+
+        $puntosEstudios = 0;
+        $estudiosValidos = 0;
+
+        foreach (['res_estudio_1', 'res_estudio_2', 'res_estudio_3'] as $estudioKey) {
+            if (isset($resultados[$estudioKey]) && $resultados[$estudioKey] !== 'No aplica') {
+                $puntosEstudios += $severidades[$resultados[$estudioKey]];
+                $estudiosValidos++;
+            }
+        }
+
+        $puntosOcupacion = 0;
+
+        if (
+            $estudio->beneficiario &&
+            $estudio->beneficiario->ocupacion &&
+            !is_null($estudio->beneficiario->ocupacion->puntos)
+        ) {
+            $puntosOcupacion = min((int) $estudio->beneficiario->ocupacion->puntos, 3);
+        }
+
+        $puntosTotales = $puntosEstudios + $puntosOcupacion;
+
+        if ($estudiosValidos === 0 && $puntosOcupacion === 0) {
+            return 'No aplica';
+        }
+
+        if ($puntosTotales >= 10 && $puntosTotales <= 12) {
+            return 'Severa';
+        } elseif ($puntosTotales >= 7 && $puntosTotales <= 9) {
+            return 'Moderada';
+        } elseif ($puntosTotales >= 4 && $puntosTotales <= 6) {
+            return 'Leve';
+        } else {
+            return 'No aplica';
+        }
+    }
+
+    public function getEstudiosCompletos(Beneficiario $beneficiario)
+    {
+        try {
+            $estudiosCompletos = $beneficiario->estudiosSocioeconomicos()
+                ->whereNotNull('res_estudio_1')
+                ->whereNotNull('res_estudio_2')
+                ->whereNotNull('res_estudio_3')
+                ->with(['beneficiario.ocupacion'])
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'estudios' => $estudiosCompletos,
+                'total' => $estudiosCompletos->count()
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al cargar estudios: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

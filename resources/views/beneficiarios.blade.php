@@ -88,6 +88,12 @@
                                 @php
                                 $cantidadEstudios = $beneficiario->estudiosSocioeconomicos->count();
 
+                                $tieneEstudiosCompletos = $beneficiario->estudiosSocioeconomicos
+                                ->whereNotNull('res_estudio_1')
+                                ->whereNotNull('res_estudio_2')
+                                ->whereNotNull('res_estudio_3')
+                                ->count() > 0;
+
                                 if ($cantidadEstudios > 0) {
                                 $rutaEdicion = route('beneficiarios.estudios.editar', [$beneficiario->id, $beneficiario->estudiosSocioeconomicos->first()->id]);
                                 $tooltip = "Editar beneficiario y estudios (" . $cantidadEstudios . " estudios)";
@@ -128,31 +134,6 @@
                                     <td>{{ $beneficiario->created_at->format('d/m/Y H:i') }}</td>
                                     <td>{{ $cantidadEstudios }}</td>
                                     <td>
-                                        <!--
-                                        <button
-                                            class="btn btn-sm btn-primary view-btn"
-                                            data-id="{{ $beneficiario->id }}"
-                                            data-nombres="{{ $beneficiario->nombres }}"
-                                            data-primer_apellido="{{ $beneficiario->primer_apellido }}"
-                                            data-segundo_apellido="{{ $beneficiario->segundo_apellido }}"
-                                            data-apellidos="{{ trim($beneficiario->primer_apellido . ' ' . $beneficiario->segundo_apellido) }}"
-                                            data-curp="{{ $beneficiario->curp }}"
-                                            data-fecha_nac="{{ $beneficiario->fecha_nac }}"
-                                            data-estado_nac="{{ $beneficiario->estado->nombre ?? 'N/A' }}"
-                                            data-sexo="{{ $beneficiario->sexo }}"
-                                            data-discapacidad="{{ $beneficiario->discapacidad ? 1 : 0 }}"
-                                            data-indigena="{{ $beneficiario->indigena ? 1 : 0 }}"
-                                            data-maya_hablante="{{ $beneficiario->maya_hablante ? 1 : 0 }}"
-                                            data-afromexicano="{{ $beneficiario->afromexicano ? 1 : 0 }}"
-                                            data-estado_civil="{{ $beneficiario->estado_civil }}"
-                                            data-ocupacion="{{ $beneficiario->ocupacion->ocupacion ?? 'N/A' }}"
-                                            data-created="{{ $beneficiario->created_at }}"
-                                            data-updated="{{ $beneficiario->updated_at }}"
-                                            data-bs-toggle="tooltip"
-                                            title="Ver detalles">
-                                            <i class="bi bi-eye"></i>
-                                        </button>
-                                        -->
 
                                         @can('editar beneficiarios')
                                         <a href="{{ route('estudios.create', $beneficiario->id) }}"
@@ -183,6 +164,21 @@
                                             <i class="bi bi-trash"></i>
                                         </button>
                                         @endcan
+
+                                        @if($tieneEstudiosCompletos)
+                                        <button class="btn btn-sm btn-purple view-resultados-btn"
+                                            data-beneficiario-id="{{ $beneficiario->id }}"
+                                            data-bs-toggle="tooltip"
+                                            title="Ver resultados completos de estudios">
+                                            <i class="bi bi-graph-up"></i>
+                                        </button>
+                                        @else
+                                        <button class="btn btn-sm btn-purple" disabled
+                                            data-bs-toggle="tooltip"
+                                            title="No hay estudios completos para mostrar">
+                                            <i class="bi bi-graph-up"></i>
+                                        </button>
+                                        @endif
                                     </td>
                                 </tr>
                                 @empty
@@ -264,6 +260,7 @@
 @include('modals.create-beneficiario')
 @include('modals.edit-beneficiario')
 @include('modals.delete-beneficiario')
+@include('modals.resultados-estudios')
 
 <!-- Bootstrap Icons -->
 <link rel="stylesheet" href="{{ asset('css/bootstrap-icons.css') }}">
@@ -327,11 +324,29 @@
     .fa-check-circle {
         margin-right: 5px;
     }
+
+    .btn-purple {
+        background: linear-gradient(135deg, #6f42c1 0%, #8a63d2 100%);
+        border: none;
+        color: white;
+    }
+
+    .btn-purple:hover {
+        background: linear-gradient(135deg, #5a359c 0%, #7a52c4 100%);
+        color: white;
+    }
+
+    .btn-purple:disabled {
+        background: #6c757d;
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
 </style>
 
 <!-- Incluir los archivos separados -->
 @include('scripts.beneficiarios-main')
 @include('scripts.beneficiarios-validation')
 @include('scripts.beneficiarios-modals')
+@include('scripts.resultados-estudios')
 
 @endsection

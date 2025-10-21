@@ -100,13 +100,13 @@
                         </select>
                     </div>
                     <div class="col-md-2"> {{-- Ocupación - 3 columnas --}}
-                        <label for="edit_ocupacion_id" class="form-label">Ocupación *</label>
+                        <label for="edit_ocupacion_id" class="form-label">Ocupación</label>
                         <select class="form-select" id="edit_ocupacion_id" name="ocupacion_id" required>
                             <option value="" disabled>Seleccione</option>
                             @foreach($ocupaciones as $ocupacion)
                             <option value="{{ $ocupacion->id }}"
                                 {{ old('ocupacion_id', $beneficiario->ocupacion_id) == $ocupacion->id ? 'selected' : '' }}>
-                                {{ $ocupacion->ocupacion }}
+                                {{ $ocupacion->ocupacion }} ({{ $ocupacion->puntos }} pts)
                             </option>
                             @endforeach
                         </select>

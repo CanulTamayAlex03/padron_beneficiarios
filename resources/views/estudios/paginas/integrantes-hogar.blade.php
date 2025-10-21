@@ -272,7 +272,7 @@
         <!-- Mostrar total y conclusión -->
         <div class="row">
             <div class="col-12">
-                <div class="alert {{ $claseBadge == 'bg-danger' ? 'alert-danger' : ($claseBadge == 'bg-warning' ? 'alert-warning' : 'alert-success') }}">
+                <div class="alert {{ (strpos($claseBadge, 'bg-danger') !== false) ? 'alert-danger' : (strpos($claseBadge, 'bg-warning') !== false ? 'alert-warning' : 'alert-success') }}">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h5 class="alert-heading mb-1">
@@ -296,8 +296,6 @@
 @endif
     </div>
 </div>
-
-
 
         @else
         <p class="text-muted">
@@ -323,205 +321,287 @@
 </style>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const createForm = document.getElementById('createIntegranteForm');
-
-        if (createForm) {
-            createForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-
-                const formData = new FormData(this);
-                const submitBtn = this.querySelector('button[type="submit"]');
-                const originalText = submitBtn.innerHTML;
-
-                submitBtn.innerHTML = '<i class="bi bi-hourglass"></i> Guardando...';
-                submitBtn.disabled = true;
-
-                fetch('{{ route("integrantes-hogar.store") }}', {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json',
-                        },
-                        body: formData
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            const modal = bootstrap.Modal.getInstance(document.getElementById('createIntegranteModal'));
-                            modal.hide();
-                            location.reload();
-                        } else {
-                            alert(data.error || 'Error al guardar');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('Error al guardar el integrante');
-                    })
-                    .finally(() => {
-                        submitBtn.innerHTML = originalText;
-                        submitBtn.disabled = false;
-                    });
-            });
-        }
-
-        // Editar integrante - CORREGIDO
-        document.querySelectorAll('.edit-integrantes-form').forEach(form => {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                const integranteId = this.getAttribute('data-id');
-                const formData = new FormData(this);
-                const submitBtn = this.querySelector('button[type="submit"]');
-                const originalText = submitBtn.innerHTML;
-
-                submitBtn.innerHTML = '<i class="bi bi-hourglass"></i> Actualizando...';
-                submitBtn.disabled = true;
-
-                // Usar la ruta con nombre de Laravel para UPDATE
-                fetch('{{ route("integrantes-hogar.update", "") }}/' + integranteId, {
-                        method: 'POST', // Laravel requiere POST para simular PUT con _method
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json',
-                            'X-HTTP-Method-Override': 'PUT' // Método alternativo
-                        },
-                        body: formData
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Error en la respuesta del servidor: ' + response.status);
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (data.success) {
-                            const modal = bootstrap.Modal.getInstance(document.getElementById(`editIntegranteModal${integranteId}`));
-                            modal.hide();
-                            location.reload();
-                        } else {
-                            alert(data.error || 'Error al actualizar');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('Error al actualizar el integrante: ' + error.message);
-                    })
-                    .finally(() => {
-                        submitBtn.innerHTML = originalText;
-                        submitBtn.disabled = false;
-                    });
-            });
-        });
-
-        // Eliminar integrante - CORREGIDO
-        document.querySelectorAll('.delete-integrantes-form').forEach(form => {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                const integranteId = this.getAttribute('data-id');
-                const submitBtn = this.querySelector('button[type="submit"]');
-                const originalText = submitBtn.innerHTML;
-
-                submitBtn.innerHTML = '<i class="bi bi-hourglass"></i> Eliminando...';
-                submitBtn.disabled = true;
-
-                // Usar la ruta con nombre de Laravel para DELETE
-                fetch('{{ route("integrantes-hogar.destroy", "") }}/' + integranteId, {
-                        method: 'POST', // Laravel requiere POST para simular DELETE con _method
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json',
-                            'X-HTTP-Method-Override': 'DELETE' // Método alternativo
-                        }
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Error en la respuesta del servidor: ' + response.status);
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (data.success) {
-                            const modal = bootstrap.Modal.getInstance(document.getElementById(`deleteIntegranteModal${integranteId}`));
-                            modal.hide();
-                            location.reload();
-                        } else {
-                            alert(data.error || 'Error al eliminar');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('Error al eliminar el integrante: ' + error.message);
-                    })
-                    .finally(() => {
-                        submitBtn.innerHTML = originalText;
-                        submitBtn.disabled = false;
-                    });
-            });
-        });
-
-        // Manejar selección de líneas CONEVAL
 document.addEventListener('DOMContentLoaded', function() {
-    const conevalRadios = document.querySelectorAll('.coneval-radio');
-    const lineaConevalIdInput = document.getElementById('linea_coneval_id');
-    const conevalActiveInput = document.getElementById('coneval_active');
-    const estudioId = {{ $estudio->id ?? 'null' }};
+    console.log('=== INICIANDO SCRIPT INTEGRANTES HOGAR ===');
+
+    // =============================================
+    // 0. INICIALIZACIÓN MEJORADA - SOLO UNA VEZ
+    // =============================================
+    function inicializarConeval() {
+        const lineaConevalIdForm = document.getElementById('linea_coneval_id');
+        const conevalActiveForm = document.getElementById('coneval_active');
+        
+        // Solo inicializar si los campos están vacíos
+        if (lineaConevalIdForm && !lineaConevalIdForm.value) {
+            const estudioLineaId = '{{ $estudio->linea_coneval_id ?? "" }}';
+            if (estudioLineaId && estudioLineaId !== 'null') {
+                lineaConevalIdForm.value = estudioLineaId;
+                console.log('linea_coneval_id_form inicializado:', estudioLineaId);
+            }
+        }
+        
+        if (conevalActiveForm && !conevalActiveForm.value) {
+            const estudioActive = '{{ $estudio->coneval_active ?? "" }}';
+            if (estudioActive && estudioActive !== 'null') {
+                conevalActiveForm.value = estudioActive;
+                console.log('coneval_active_form actualizado:', estudioActive);
+            }
+        }
+    }
+
+    // Llamar a la inicialización SOLO UNA VEZ al inicio
+    inicializarConeval();
+
+    // =============================================
+    // 1. CRUD DE INTEGRANTES DEL HOGAR
+    // =============================================
+    const createForm = document.getElementById('createIntegranteForm');
+    if (createForm) {
+        createForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+
+            submitBtn.innerHTML = '<i class="bi bi-hourglass"></i> Guardando...';
+            submitBtn.disabled = true;
+
+            fetch('{{ route("integrantes-hogar.store") }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                    },
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('createIntegranteModal'));
+                        modal.hide();
+                        location.reload();
+                    } else {
+                        alert(data.error || 'Error al guardar');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al guardar el integrante');
+                })
+                .finally(() => {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                });
+        });
+    }
+
+    // Editar integrante
+    document.querySelectorAll('.edit-integrantes-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const integranteId = this.getAttribute('data-id');
+            const formData = new FormData(this);
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+
+            submitBtn.innerHTML = '<i class="bi bi-hourglass"></i> Actualizando...';
+            submitBtn.disabled = true;
+
+            fetch('{{ route("integrantes-hogar.update", "") }}/' + integranteId, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                        'X-HTTP-Method-Override': 'PUT'
+                    },
+                    body: formData
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error en la respuesta del servidor: ' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        const modal = bootstrap.Modal.getInstance(document.getElementById(`editIntegranteModal${integranteId}`));
+                        modal.hide();
+                        location.reload();
+                    } else {
+                        alert(data.error || 'Error al actualizar');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al actualizar el integrante: ' + error.message);
+                })
+                .finally(() => {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                });
+        });
+    });
+
+    // Eliminar integrante
+    document.querySelectorAll('.delete-integrantes-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const integranteId = this.getAttribute('data-id');
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+
+            submitBtn.innerHTML = '<i class="bi bi-hourglass"></i> Eliminando...';
+            submitBtn.disabled = true;
+
+            fetch('{{ route("integrantes-hogar.destroy", "") }}/' + integranteId, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                        'X-HTTP-Method-Override': 'DELETE'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error en la respuesta del servidor: ' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        const modal = bootstrap.Modal.getInstance(document.getElementById(`deleteIntegranteModal${integranteId}`));
+                        modal.hide();
+                        location.reload();
+                    } else {
+                        alert(data.error || 'Error al eliminar');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al eliminar el integrante: ' + error.message);
+                })
+                .finally(() => {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                });
+        });
+    });
+
+    // =============================================
+    // 2. SINCRONIZACIÓN DE LAS 3 PREGUNTAS
+    // =============================================
+
+    // A. Sincronizar Servicio de Salud
+    const servicioSaludSelect = document.getElementById('servicio_salud_id');
+    const servicioSaludHidden = document.getElementById('servicio_salud_id_form');
     
+    if (servicioSaludSelect && servicioSaludHidden) {
+        // Solo sincronizar valor inicial si está vacío
+        if (!servicioSaludHidden.value && servicioSaludSelect.value) {
+            servicioSaludHidden.value = servicioSaludSelect.value;
+        }
+        
+        servicioSaludSelect.addEventListener('change', function() {
+            servicioSaludHidden.value = this.value;
+            console.log('Servicio salud actualizado:', this.value);
+        });
+    }
+    
+    // B. Sincronizar Escolaridad
+    const escolaridadSelect = document.getElementById('escolaridad_id');
+    const escolaridadHidden = document.getElementById('escolaridad_id_form');
+    
+    if (escolaridadSelect && escolaridadHidden) {
+        // Solo sincronizar valor inicial si está vacío
+        if (!escolaridadHidden.value && escolaridadSelect.value) {
+            escolaridadHidden.value = escolaridadSelect.value;
+        }
+        
+        escolaridadSelect.addEventListener('change', function() {
+            escolaridadHidden.value = this.value;
+            console.log('Escolaridad actualizada:', this.value);
+        });
+    }
+
+    // C. Sincronizar CONEVAL
+    const conevalRadios = document.querySelectorAll('.coneval-radio');
+    const lineaConevalIdForm = document.getElementById('linea_coneval_id');
+    const conevalActiveForm = document.getElementById('coneval_active');
+    
+    console.log('CONEVAL - Estado inicial campos:', {
+        lineaValue: lineaConevalIdForm?.value,
+        activeValue: conevalActiveForm?.value
+    });
+
+    // Event listeners para CONEVAL
     conevalRadios.forEach(radio => {
         radio.addEventListener('change', function() {
             if (this.checked) {
                 const lineaId = this.getAttribute('data-linea-id');
                 const active = this.getAttribute('data-active');
                 
-                // Actualizar campos ocultos
-                lineaConevalIdInput.value = lineaId;
-                conevalActiveInput.value = active;
-                
-                console.log('Línea CONEVAL seleccionada:', {
+                console.log('CONEVAL - Radio cambiado:', {
                     linea_id: lineaId,
-                    active: active
+                    active: active,
+                    radio_id: this.id
                 });
                 
-                // Actualizar automáticamente en el servidor si hay un estudio
-                if (estudioId) {
-                    actualizarConevalEnServidor(lineaId, active);
+                // ACTUALIZAR CAMPOS DEL FORMULARIO PRINCIPAL
+                if (lineaConevalIdForm) {
+                    lineaConevalIdForm.value = lineaId;
+                    console.log('linea_coneval_id_form actualizado:', lineaId);
+                }
+                if (conevalActiveForm) {
+                    conevalActiveForm.value = active;
+                    console.log('coneval_active_form actualizado:', active);
                 }
             }
         });
     });
 
-    // Función para actualizar CONEVAL en el servidor
-    function actualizarConevalEnServidor(lineaId, active) {
-        fetch(`/estudios/${estudioId}/update-coneval`, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-            },
-            body: JSON.stringify({
-                linea_coneval_id: lineaId,
-                coneval_active: active
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Recargar para actualizar la comparación
-                setTimeout(() => {
-                    window.location.reload();
-                }, 500);
+    // =============================================
+    // 3. VERIFICACIÓN DE ENVÍO DE FORMULARIO
+    // =============================================
+    const formPrincipal = document.getElementById('estudioForm');
+    if (formPrincipal) {
+        formPrincipal.addEventListener('submit', function(e) {
+            // Obtener valores ACTUALES en el momento del envío
+            const lineaId = document.getElementById('linea_coneval_id_form')?.value;
+            const active = document.getElementById('coneval_active_form')?.value;
+            const servicioSalud = document.getElementById('servicio_salud_id_form')?.value;
+            const escolaridad = document.getElementById('escolaridad_id_form')?.value;
+            
+            // Verificar específicamente CONEVAL
+            if (!lineaId || !active) {
+                console.warn('⚠️ ADVERTENCIA: Campos CONEVAL incompletos');
             } else {
-                console.error('Error al actualizar CONEVAL:', data.message);
-                alert('Error al guardar la selección: ' + data.message);
+                console.log('✅ CONEVAL completo - Se guardará correctamente');
             }
-        })
-        .catch(error => {
-            console.error('Error en la solicitud:', error);
-            alert('Error de conexión al guardar la selección');
         });
     }
-});
+
+    // =============================================
+    // 4. VERIFICACIÓN ÚNICA AL CARGAR
+    // =============================================
+    setTimeout(() => {
+        console.log(' === VERIFICACIÓN INICIAL DE CAMPOS ===');
+        
+        const verificarCampo = (id, nombre) => {
+            const elemento = document.getElementById(id);
+            if (elemento) {
+                console.log(` ${nombre}:`, elemento.value || '(vacío)');
+                return elemento.value;
+            }
+            return null;
+        };
+
+        console.log(' linea_coneval_id:', verificarCampo('linea_coneval_id_form', 'linea_coneval_id'));
+        console.log(' coneval_active:', verificarCampo('coneval_active_form', 'coneval_active'));
+        console.log(' servicio_salud_id:', verificarCampo('servicio_salud_id_form', 'servicio_salud_id'));
+        console.log(' escolaridad_id:', verificarCampo('escolaridad_id_form', 'escolaridad_id'));
+    }, 500);
+
+    console.log('=== SCRIPT INTEGRANTES HOGAR CARGADO ===');
 });
 </script>
-

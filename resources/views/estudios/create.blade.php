@@ -150,109 +150,12 @@
                                 </button>
                             </div>
                         </div>
-                    
-
-                        <!-- Navegación por pasos -->
-                        <ul class="nav nav-pills nav-justified mb-4" id="estudioTabs" role="tablist">
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link active" id="paso1-tab" data-bs-toggle="pill" data-bs-target="#paso1" type="button" role="tab">
-                                    <i class="bi bi-1-circle me-1"></i>Evaluación Económica y Familiar
-                                </button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="paso2-tab" data-bs-toggle="pill" data-bs-target="#paso2" type="button" role="tab">
-                                    <i class="bi bi-2-circle me-1"></i>Evaluación de espacios y servicios
-                                </button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="paso3-tab" data-bs-toggle="pill" data-bs-target="#paso3" type="button" role="tab">
-                                    <i class="bi bi-3-circle me-1"></i>Evaluación de la seguridad alimentaria
-                                </button>
-                            </li>
-                        </ul>
-
-                        
-                            <div class="tab-content" id="estudioTabsContent">
-
-                                <!-- PASO 1: Editar datos del beneficiario -->
-                                @include('estudios.paginas.estudio_paso1')
-
-                                <!-- PASO 2: Evaluación Economica y Familiar -->
-                                @include('estudios.paginas.estudio_paso2')
-
-                                <!-- PASO 3: Necesidades y Observaciones -->
-                                <div class="tab-pane fade" id="paso3" role="tabpanel">
-                                    <fieldset class="border rounded p-3 mb-4">
-                                        <legend class="float-none w-auto px-3 fw-bold text-dark">
-                                            <i class="bi bi-clipboard-check me-2"></i>Evaluación de la seguridad alimentaria
-                                        </legend>
-
-                                        <div class="row">
-                                            <div class="col-12 mb-3">
-                                                <label class="form-label">Necesidades Prioritarias Identificadas</label>
-                                                <div class="row">
-                                                    <div class="col-md-6">
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="checkbox" value="alimentacion" id="alimentacion">
-                                                            <label class="form-check-label" for="alimentacion">Alimentación</label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="checkbox" value="salud" id="salud">
-                                                            <label class="form-check-label" for="salud">Salud</label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="checkbox" value="educacion" id="educacion">
-                                                            <label class="form-check-label" for="educacion">Educación</label>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="checkbox" value="vivienda" id="vivienda">
-                                                            <label class="form-check-label" for="vivienda">Vivienda</label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="checkbox" value="empleo" id="empleo">
-                                                            <label class="form-check-label" for="empleo">Empleo</label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="checkbox" value="vestimenta" id="vestimenta">
-                                                            <label class="form-check-label" for="vestimenta">Vestimenta</label>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="col-12 mb-3">
-                                                <label for="observaciones" class="form-label">Observaciones Generales</label>
-                                                <textarea class="form-control" id="observaciones" rows="3"
-                                                    placeholder="Describa la situación socioeconómica general del beneficiario y su familia..."></textarea>
-                                            </div>
-
-                                            <div class="col-12 mb-3">
-                                                <label for="recomendaciones" class="form-label">Recomendaciones y Apoyos Sugeridos</label>
-                                                <textarea class="form-control" id="recomendaciones" rows="2"
-                                                    placeholder="Sugerencias de apoyos o programas que podrían beneficiar al solicitante..."></textarea>
-                                            </div>
-                                        </div>
-                                    </fieldset>
-                                    <div class="d-flex justify-content-between">
-                                        <button type="button" class="btn btn-secondary" onclick="anteriorPaso(2)">
-                                            <i class="bi bi-arrow-left"></i> Anterior
-                                        </button>
-                                        <button type="submit" class="btn btn-success"
-                                            onclick="return confirm('¿Estás seguro de guardar el estudio socioeconómico?')">
-                                            <i class="bi bi-save"></i> Guardar Estudio
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
                         </form>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
 
 
 <!-- Modal crear -->

@@ -67,7 +67,7 @@ Route::middleware('auth')->group(function () {
 
     Route::post('estudios/{estudio}/update-linea-coneval', [EstudioSocioeconomicoController::class, 'updateLineaConeval'])
         ->name('estudios.update-linea-coneval');
-        
+
     Route::post('estudios/{estudio}/update-coneval', [EstudioSocioeconomicoController::class, 'updateConeval'])
         ->name('estudios.update-coneval');
 
@@ -89,6 +89,11 @@ Route::middleware('auth')->group(function () {
 
     Route::get('lineas-coneval/por-periodo', [LineaConevalController::class, 'getByPeriodo'])
         ->name('lineas-coneval.por-periodo');
+
+    // Rutas para resultados de estudios
+    Route::get('/beneficiarios/{beneficiario}/estudios-completos', [BeneficiarioController::class, 'getEstudiosCompletos']);
+    Route::get('/estudios/{estudio}/vista-resultado', [EstudioSocioeconomicoController::class, 'vistaResultado']);
+
 
     // ================== PANEL ADMINISTRADOR ==================
     Route::prefix('administrador')

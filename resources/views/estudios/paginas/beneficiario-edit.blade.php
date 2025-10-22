@@ -25,20 +25,28 @@
                 <div class="row g-3">
                     <div class="col-md-3"> {{-- 4 columnas --}}
                         <label for="edit_nombres" class="form-label">Nombres *</label>
-                        <input type="text" class="form-control" id="edit_nombres" name="nombres"
-                            value="{{ old('nombres', $beneficiario->nombres) }}" required>
+                        <input type="text" class="form-control uppercase-no-tildes" id="edit_nombres" name="nombres"
+                        value="{{ old('nombres', $beneficiario->nombres) }}"
+                        pattern="[A-ZÑ\s\.]+" 
+                        oninput="this.value = this.value.toUpperCase().replace(/[^A-ZÑ\s\.]/g, '')" 
+                        required>
                     </div>
                     <div class="col-md-3"> {{-- 4 columnas --}}
                         <label for="edit_primer_apellido" class="form-label">Primer Apellido *</label>
-                        <input type="text" class="form-control" id="edit_primer_apellido" name="primer_apellido"
-                            value="{{ old('primer_apellido', $beneficiario->primer_apellido) }}" required>
+                        <input type="text" class="form-control uppercase-no-tildes" id="edit_primer_apellido" name="primer_apellido"
+                        value="{{ old('primer_apellido', $beneficiario->primer_apellido) }}"
+                        pattern="[A-ZÑ\s\.]+" 
+                        oninput="this.value = this.value.toUpperCase().replace(/[^A-ZÑ\s\.]/g, '')" 
+                        required>
                     </div>
                     <div class="col-md-3"> {{-- 4 columnas --}}
                         <label for="edit_segundo_apellido" class="form-label">Segundo Apellido</label>
-                        <input type="text" class="form-control" id="edit_segundo_apellido" name="segundo_apellido"
-                            value="{{ old('segundo_apellido', $beneficiario->segundo_apellido) }}">
+                        <input type="text" class="form-control uppercase-no-tildes" id="edit_segundo_apellido" name="segundo_apellido"
+                        value="{{ old('segundo_apellido', $beneficiario->segundo_apellido) }}"
+                        pattern="[A-ZÑ\s\.]+" 
+                        oninput="this.value = this.value.toUpperCase().replace(/[^A-ZÑ\s\.]/g, '')">
                     </div>
-                    <div class="col-md-3"> {{-- CURP movido aquí - 4 columnas --}}
+                    <div class="col-md-3"> 
                         <label for="edit_curp" class="form-label">CURP</label>
                         <input type="text" class="form-control" id="edit_curp" name="curp"
                             maxlength="18" oninput="validarCurpEdit()"
@@ -63,7 +71,7 @@
                     <div class="col-md-3"> {{-- Fecha de Nacimiento - 3 columnas --}}
                         <label for="edit_fecha_nac" class="form-label">Fecha de Nacimiento</label>
                         <input type="date" class="form-control" id="edit_fecha_nac" name="fecha_nac"
-                            value="{{ old('fecha_nac', $beneficiario->fecha_nac->format('Y-m-d')) }}">
+                            value="{{ old('fecha_nac', $beneficiario->fecha_nac->format('Y-m-d')) }}" max="{{ date('Y-m-d') }}">
                     </div>
                     <div class="col-md-3"> {{-- Estado de Nacimiento - 3 columnas --}}
                         <label for="edit_estado_id" class="form-label">Estado de Nacimiento</label>
@@ -276,7 +284,18 @@
         </form>
     </div>
 </div>
+<style>
+    #edit_curp{
+    text-transform: uppercase;
+    }
+    .uppercase-no-tildes {
+    text-transform: uppercase;
+}
 
+#edit_nombres, #edit_primer_apellido, #edit_segundo_apellido {
+    text-transform: uppercase;
+}
+</style>
 <script>
     document.addEventListener("DOMContentLoaded", () => {
         const form = document.getElementById("editBeneficiarioForm");

@@ -24,15 +24,23 @@
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label for="create_nombres" class="form-label">Nombres *</label>
-                                <input type="text" class="form-control" id="create_nombres" name="nombres" required>
+                                <input type="text" class="form-control uppercase-no-tildes" id="create_nombres" name="nombres"
+                                    pattern="[A-ZÑ\s\.]+"
+                                    oninput="this.value = this.value.toUpperCase().replace(/[^A-ZÑ\s\.]/g, '')"
+                                    required>
                             </div>
                             <div class="col-md-6">
                                 <label for="create_primer_apellido" class="form-label">Primer Apellido *</label>
-                                <input type="text" class="form-control" id="create_primer_apellido" name="primer_apellido" required>
+                                <input type="text" class="form-control uppercase-no-tildes" id="create_primer_apellido" name="primer_apellido"
+                                    pattern="[A-ZÑ\s\.]+"
+                                    oninput="this.value = this.value.toUpperCase().replace(/[^A-ZÑ\s\.]/g, '')"
+                                    required>
                             </div>
                             <div class="col-md-6">
                                 <label for="create_segundo_apellido" class="form-label">Segundo Apellido</label>
-                                <input type="text" class="form-control" id="create_segundo_apellido" name="segundo_apellido">
+                                <input type="text" class="form-control uppercase-no-tildes" id="create_segundo_apellido" name="segundo_apellido"
+                                    pattern="[A-ZÑ\s\.]+"
+                                    oninput="this.value = this.value.toUpperCase().replace(/[^A-ZÑ\s\.]/g, '')">
                             </div>
                             <input type="hidden" id="create_apellidos" name="apellidos" value="">
                         </div>
@@ -45,7 +53,8 @@
                             <div class="col-md-6">
                                 <label for="create_curp" class="form-label">CURP</label>
                                 <input type="text" class="form-control" id="create_curp" name="curp"
-                                    maxlength="18" oninput="validarCurp()"
+                                    maxlength="18"
+                                    oninput="this.value = this.value.toUpperCase(); validarCurp();"
                                     placeholder="Ej: ABCDEFGH0123456789">
                                 <div class="form-text">18 caracteres exactos (opcional)</div>
                                 <div id="curp-error" class="text-danger small d-none mt-1">
@@ -59,7 +68,7 @@
                                 <label for="create_curp_confirm" class="form-label">Confirmar CURP</label>
                                 <input type="text" class="form-control" id="create_curp_confirm"
                                     name="curp_confirm" maxlength="18"
-                                    oninput="validarConfirmacionCurp()"
+                                    oninput="this.value = this.value.toUpperCase(); validarConfirmacionCurp();"
                                     placeholder="Escriba la CURP nuevamente"
                                     onpaste="return false;" oncopy="return false;" oncut="return false;">
                                 <div class="form-text">No se permite copiar/pegar en este campo</div>
@@ -76,7 +85,8 @@
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label for="create_fecha_nac" class="form-label">Fecha de Nacimiento</label>
-                                <input type="date" class="form-control" id="create_fecha_nac" name="fecha_nac">
+                                <input type="date" class="form-control" id="create_fecha_nac" name="fecha_nac"
+                                    max="{{ date('Y-m-d') }}">
                             </div>
                             <div class="col-md-6">
                                 <label for="create_edad" class="form-label">Edad</label>
@@ -87,7 +97,7 @@
                                 <select class="form-select" id="create_estado_id" name="estado_id">
                                     <option value="" disabled selected>Seleccione un estado</option>
                                     @foreach($estados as $estado)
-                                    <option value="{{ $estado->id_estado }}">{{ $estado->nombre }}</option>
+                                    <option value="{{ $estado->id_estado }}" {{ $estado->id_estado == 31 ? 'selected' : '' }}>{{ $estado->nombre }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -170,7 +180,7 @@
                     {{-- DATOS DE DOMICILIO (NUEVOS CAMPOS) --}}
                     <fieldset class="border rounded p-3 mb-3">
                         <legend class="float-none w-auto px-2">Domicilio</legend>
-                        
+
                         {{-- Dirección --}}
                         <div class="row g-3 mb-3">
                             <div class="col-md-8">
@@ -227,18 +237,23 @@
                             <div class="col-md-6">
                                 <label for="create_estado_viv_id" class="form-label">Estado de residencia</label>
                                 <select class="form-select" id="create_estado_viv_id" name="estado_viv_id" required>
-                                    <option value="" disabled selected>Seleccione un estado</option>
+                                    <option value="" disabled>Seleccione un estado</option>
                                     @foreach($estados as $estado)
-                                    <option value="{{ $estado->id_estado }}">{{ $estado->nombre }}</option>
+                                    <option value="{{ $estado->id_estado }}"
+                                        {{ $estado->id_estado == 31 ? 'selected' : '' }}>
+                                        {{ $estado->nombre }}
+                                    </option>
                                     @endforeach
                                 </select>
                             </div>
                             <div class="col-md-6">
                                 <label for="create_municipio_id" class="form-label">Municipio</label>
                                 <select class="form-select" id="create_municipio_id" name="municipio_id" required>
-                                    <option value="" disabled selected>Seleccione un municipio</option>
+                                    <option value="" disabled>Seleccione un municipio</option>
                                     @foreach($municipios as $municipio)
-                                    <option value="{{ $municipio->id }}" data-estado="{{ $municipio->estado_id }}">
+                                    <option value="{{ $municipio->id }}"
+                                        data-estado="{{ $municipio->estado_id }}"
+                                        {{ $municipio->id == 2343 ? 'selected' : '' }}>
                                         {{ $municipio->descripcion }}
                                     </option>
                                     @endforeach
@@ -355,7 +370,6 @@
         cursor: not-allowed;
     }
 
-    /* Estilos para el modal de estudio socioeconómico */
     #estudioSocioeconomicoModal .modal-content {
         border: none;
         border-radius: 10px;
@@ -367,5 +381,18 @@
 
     #btn-iniciar-estudio {
         min-width: 120px;
+    }
+
+    .uppercase-no-tildes {
+        text-transform: uppercase;
+    }
+
+    #create_nombres,
+    #create_primer_apellido,
+    #create_segundo_apellido,
+    #edit_nombres,
+    #edit_primer_apellido,
+    #edit_segundo_apellido {
+        text-transform: uppercase;
     }
 </style>

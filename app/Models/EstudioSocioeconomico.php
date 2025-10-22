@@ -55,7 +55,7 @@ class EstudioSocioeconomico extends Model
         'res_total'
     ];
 
-    protected $dates = ['fecha_solicitud', 'deleted_at'];
+    protected $dates = ['fecha_solicitud', 'created_at', 'updated_at', 'deleted_at'];
 
     protected $casts = [
         'electricidad' => 'boolean',

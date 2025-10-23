@@ -132,9 +132,22 @@
                                     </td>
                                     <td>{{ $beneficiario->curp }}</td>
                                     <td>{{ $beneficiario->created_at->format('d/m/Y H:i') }}</td>
-                                    <td>{{ $cantidadEstudios }}</td>
-                                    <td>
 
+                                    <td>
+                                        @if($cantidadEstudios > 0)
+                                        <span class="badge bg-primary view-estudios-btn"
+                                            style="cursor: pointer;"
+                                            data-beneficiario-id="{{ $beneficiario->id }}"
+                                            data-beneficiario-nombre="{{ $beneficiario->nombres }} {{ $beneficiario->primer_apellido }} {{ $beneficiario->segundo_apellido }}"
+                                            title="Ver estudios de este beneficiario">
+                                            {{ $cantidadEstudios }}
+                                        </span>
+                                        @else
+                                        <span class="badge bg-secondary">0</span>
+                                        @endif
+                                    </td>
+
+                                    <td>
                                         @can('editar beneficiarios')
                                         <a href="{{ route('estudios.create', $beneficiario->id) }}"
                                             class="btn btn-sm btn-primary"
@@ -261,6 +274,7 @@
 @include('modals.edit-beneficiario')
 @include('modals.delete-beneficiario')
 @include('modals.resultados-estudios')
+@include('modals.select-estudio')
 
 <!-- Bootstrap Icons -->
 <link rel="stylesheet" href="{{ asset('css/bootstrap-icons.css') }}">
@@ -341,6 +355,21 @@
         opacity: 0.6;
         cursor: not-allowed;
     }
+
+    .view-estudios-btn:hover {
+        opacity: 0.8;
+        transform: scale(1.05);
+        transition: all 0.2s ease;
+    }
+
+    #estudios-table tr.table-active {
+        background-color: #e3f2fd !important;
+    }
+
+    .seleccionar-estudio-btn:hover {
+        background-color: #0d6efd;
+        color: white;
+    }
 </style>
 
 <!-- Incluir los archivos separados -->
@@ -348,5 +377,6 @@
 @include('scripts.beneficiarios-validation')
 @include('scripts.beneficiarios-modals')
 @include('scripts.resultados-estudios')
+@include('scripts.select-estudios')
 
 @endsection

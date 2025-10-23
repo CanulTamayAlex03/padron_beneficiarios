@@ -2,7 +2,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title"><i class="bi bi-person-plus"></i> Agregar Acompañante</h5>
+                <h5 class="modal-title"><i class="bi bi-person-plus"></i> Agregar Auxiliar</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form action="{{ route('familiares.store', ['beneficiario' => $beneficiario->id]) }}" method="POST">

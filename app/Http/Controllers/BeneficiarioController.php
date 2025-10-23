@@ -328,4 +328,33 @@ class BeneficiarioController extends Controller
             ], 500);
         }
     }
+
+    public function getEstudiosApi(Beneficiario $beneficiario)
+    {
+        try {
+            $estudios = $beneficiario->estudiosSocioeconomicos->map(function ($estudio) use ($beneficiario) {
+                return [
+                    'id' => $estudio->id,
+                    'folio' => $estudio->folio,
+                    'created_at' => $estudio->created_at,
+                    'res_estudio_1' => $estudio->res_estudio_1,
+                    'res_estudio_2' => $estudio->res_estudio_2,
+                    'res_estudio_3' => $estudio->res_estudio_3,
+                    'ruta_edicion' => route('beneficiarios.estudios.editar', [$beneficiario->id, $estudio->id])
+                ];
+            });
+
+            return response()->json([
+                'beneficiario' => [
+                    'id' => $beneficiario->id,
+                    'nombre' => $beneficiario->nombres . ' ' . $beneficiario->primer_apellido . ' ' . $beneficiario->segundo_apellido
+                ],
+                'estudios' => $estudios
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Error al cargar los estudios: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

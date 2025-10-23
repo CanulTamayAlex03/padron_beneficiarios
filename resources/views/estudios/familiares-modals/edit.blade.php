@@ -3,7 +3,7 @@
         <div class="modal-content">
             <div class="modal-header bg-warning text-dark">
                 <h5 class="modal-title">
-                    <i class="bi bi-pencil"></i> Editar Acompañante
+                    <i class="bi bi-pencil"></i> Editar Auxiliar
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>

@@ -5,7 +5,6 @@ document.addEventListener('DOMContentLoaded', function() {
     let estudiosCompletos = [];
     let paginaActual = 1;
 
-    // Cerrar modal con cualquier botón que tenga data-bs-dismiss
     modalEl.querySelectorAll('[data-bs-dismiss="modal"]').forEach(btn => {
         btn.addEventListener('click', () => modal.hide());
     });

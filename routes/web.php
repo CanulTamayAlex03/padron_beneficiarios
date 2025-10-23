@@ -29,6 +29,9 @@ Route::middleware('auth')->group(function () {
         // Editar solo el beneficiario (sin estudios)
         Route::get('/beneficiarios/{beneficiario}/editar', [BeneficiarioController::class, 'editarBeneficiario'])
             ->name('beneficiarios.editar');
+
+        Route::get('/api/beneficiarios/{beneficiario}/estudios', [BeneficiarioController::class, 'getEstudiosApi'])
+            ->name('api.beneficiarios.estudios');
     });
 
     Route::post('/beneficiarios', [BeneficiarioController::class, 'store'])

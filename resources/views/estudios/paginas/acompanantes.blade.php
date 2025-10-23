@@ -1,11 +1,11 @@
-<!-- Sección de acompañantes -->
+<!-- Sección de acompañantes/auxiliares -->
 <div class="card mb-4">
     <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
         <h5 class="mb-0">
-            <i class="bi bi-people-fill me-2"></i> Acompañantes
+            <i class="bi bi-people-fill me-2"></i> Auxiliares del Beneficiario
         </h5>
         <button type="button" class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#createFamiliarModal">
-            <i class="bi bi-person-plus"></i> Agregar acompañante
+            <i class="bi bi-person-plus"></i> Agregar auxiliar
         </button>
     </div>
 
@@ -48,7 +48,7 @@
             </table>
         </div>
         @else
-        <p class="text-muted">No hay acompañantes registrados.</p>
+        <p class="text-muted">No hay auxiliares registrados.</p>
         @endif
     </div>
 </div>

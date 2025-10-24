@@ -7,6 +7,9 @@
     <title>Padron de Beneficiarios</title>
     <link href="{{ mix('css/app.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/bootstrap-icons.css') }}">
+
+    <link rel="shortcut icon" href="{{ asset('images/buena-persona.png') }}" type="image/png">
+    <link rel="icon" href="{{ asset('images/buena-persona.png') }}" type="image/png">
     <style>
         :root {
             --primary-color: #2c3e50;

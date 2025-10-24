@@ -14,28 +14,28 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label>Nombre(s) *</label>
-                            <input type="text" name="nombres" class="form-control">
+                            <input type="text" name="nombres" class="form-control uppercase-input"
+                                oninput="this.value = this.value.toUpperCase().replace(/[^A-ZÑ\s]/g, '')">
                         </div>
                         <div class="col-md-6 mb-3">
                             <label>Apellidos *</label>
-                            <input type="text" name="apellidos" class="form-control">
+                            <input type="text" name="apellidos" class="form-control uppercase-input"
+                                oninput="this.value = this.value.toUpperCase().replace(/[^A-ZÑ\s]/g, '')">
                         </div>
                         <div class="col-md-4 mb-3">
                             <label>Edad *</label>
-                            <input type="number" name="edad" class="form-control" min="0" max="120">
+                            <input type="number" name="edad" class="form-control"
+                                min="0" max="125"
+                                maxlength="3"
+                                oninput="this.value = this.value.slice(0, 3); this.value = this.value.replace(/[^0-9]/g, ''); if(this.value > 125) this.value = 125;">
                         </div>
                         <div class="col-md-4 mb-3">
                             <label>Parentesco *</label>
-                            <select name="parentesco" class="form-select">
+                            <select name="parentesco_id" class="form-select" required>
                                 <option value="">Seleccione...</option>
-                                <option value="Jefe(a) de familia">Jefe(a) de familia</option>
-                                <option value="Cónyuge">Cónyuge</option>
-                                <option value="Hijo(a)">Hijo(a)</option>
-                                <option value="Padre">Padre</option>
-                                <option value="Madre">Madre</option>
-                                <option value="Hermano(a)">Hermano(a)</option>
-                                <option value="Otro familiar">Otro familiar</option>
-                                <option value="No familiar">No familiar</option>
+                                @foreach($parentescos as $parentesco)
+                                <option value="{{ $parentesco->id }}">{{ $parentesco->descripcion }}</option>
+                                @endforeach
                             </select>
                         </div>
                         <div class="col-md-4 mb-3">
@@ -52,4 +52,9 @@
         </div>
     </div>
 </div>
+<style>
+    .uppercase-input {
+        text-transform: uppercase;
+    }
+</style>
 @endif

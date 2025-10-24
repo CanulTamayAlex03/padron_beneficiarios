@@ -15,6 +15,7 @@ use App\Models\Municipio;
 use App\Models\LineaConeval;
 use App\Models\ServicioSalud;
 use App\Models\Escolaridad;
+use App\Models\Parentesco;
 use Illuminate\Support\Facades\Log;
 
 class EstudioSocioeconomicoController extends Controller
@@ -123,7 +124,7 @@ class EstudioSocioeconomicoController extends Controller
     public function show(EstudioSocioeconomico $estudio)
     {
         $estudio->load([
-            'beneficiario',
+            'beneficiario.familiares.parentesco',
             'region',
             'solicitud',
             'programa',
@@ -131,7 +132,9 @@ class EstudioSocioeconomicoController extends Controller
             'lineaConeval'
         ]);
 
-        return view('estudios-socioeconomicos.show', compact('estudio'));
+        $parentescos = Parentesco::orderBy('descripcion')->get();
+
+        return view('estudios-socioeconomicos.show', compact('estudio', 'parentescos'));
     }
 
     public function editarCompleto(Beneficiario $beneficiario, EstudioSocioeconomico $estudio)
@@ -140,7 +143,7 @@ class EstudioSocioeconomicoController extends Controller
             abort(404, 'El estudio no pertenece a este beneficiario');
         }
 
-        $estudio->load(['integrantesHogar', 'lineaConeval']);
+        $estudio->load(['integrantesHogar.parentesco', 'lineaConeval']);
         $totalPersonas = $estudio->integrantesHogar->count();
 
         $estudios = $beneficiario->estudiosSocioeconomicos()->orderBy('created_at', 'desc')->get();
@@ -159,6 +162,8 @@ class EstudioSocioeconomicoController extends Controller
         $serviciosSalud = ServicioSalud::all();
         $escolaridades = Escolaridad::all();
 
+        $parentescos = Parentesco::all();
+
         return view('beneficiarios.editar-completo', compact(
             'beneficiario',
             'estudio',
@@ -174,6 +179,7 @@ class EstudioSocioeconomicoController extends Controller
             'serviciosSalud',
             'escolaridades',
             'totalPersonas',
+            'parentescos'
         ));
     }
 

@@ -28,7 +28,7 @@
                         <td>{{ $familiar->nombres }} {{ $familiar->primer_apellido }} {{ $familiar->segundo_apellido }}</td>
                         <td>{{ $familiar->curp }}</td>
                         <td>{{ $familiar->telefono }}</td>
-                        <td>{{ $familiar->relacion_parentezco }}</td>
+                        <td>{{ $familiar->parentesco->descripcion ?? 'N/A' }}</td>
                         <td class="text-center">
                             <!-- Botón editar -->
                             <button type="button" class="btn btn-sm btn-warning"
@@ -52,3 +52,4 @@
         @endif
     </div>
 </div>
+@include('estudios.familiares-modals.create')

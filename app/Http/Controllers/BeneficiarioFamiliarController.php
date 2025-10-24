@@ -3,13 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\BeneficiarioFamiliar;
+use App\Models\Parentesco;
 use Illuminate\Http\Request;
 
 class BeneficiarioFamiliarController extends Controller
 {
     public function index()
     {
-        $familiares = BeneficiarioFamiliar::with('beneficiario')->get();
+        $familiares = BeneficiarioFamiliar::with('beneficiario', '')->get();
         return response()->json($familiares);
     }
 
@@ -21,7 +22,7 @@ class BeneficiarioFamiliarController extends Controller
             'segundo_apellido' => 'nullable|string|max:100',
             'curp' => 'nullable|string|max:18|unique:beneficiario_familiar,curp',
             'telefono' => 'nullable|string|max:15',
-            'relacion_parentezco' => 'required|string|max:100',
+            'parentesco_id' => 'required|exists:parentesco,id',
             'beneficiario_id' => 'required|exists:beneficiarios,id',
         ]);
 
@@ -32,7 +33,7 @@ class BeneficiarioFamiliarController extends Controller
 
     public function show($id)
     {
-        $familiar = BeneficiarioFamiliar::with('beneficiario')->findOrFail($id);
+        $familiar = BeneficiarioFamiliar::with(['beneficiario', 'parentesco'])->findOrFail($id);
         return response()->json($familiar);
     }
 
@@ -46,7 +47,7 @@ class BeneficiarioFamiliarController extends Controller
             'segundo_apellido' => 'nullable|string|max:100',
             'curp' => 'nullable|string|max:18|unique:beneficiario_familiar,curp,' . $familiar->id,
             'telefono' => 'nullable|string|max:15',
-            'relacion_parentezco' => 'sometimes|string|max:100',
+            'parentesco_id' => 'sometimes|exists:parentesco,id', 
             'beneficiario_id' => 'sometimes|exists:beneficiarios,id',
         ]);
 

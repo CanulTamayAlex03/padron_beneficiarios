@@ -10,7 +10,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 
-
 class BeneficiarioController extends Controller
 {
     public function index(Request $request)

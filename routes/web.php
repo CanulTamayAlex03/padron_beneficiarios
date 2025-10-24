@@ -57,6 +57,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('familiares/{familiar}', [BeneficiarioFamiliarController::class, 'destroy'])
         ->name('familiares.destroy');
 
+
     // ================== ESTUDIO SOCIOECONOMICO ==================
     Route::get('estudios', [EstudioSocioeconomicoController::class, 'index'])->name('estudios.index');
     Route::get('estudios/create/{beneficiario}', [EstudioSocioeconomicoController::class, 'create'])->name('estudios.create');

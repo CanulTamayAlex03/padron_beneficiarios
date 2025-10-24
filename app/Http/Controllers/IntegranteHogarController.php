@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\IntegranteHogar;
 use App\Models\EstudioSocioeconomico;
+use App\Models\Parentesco;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -21,7 +22,7 @@ class IntegranteHogarController extends Controller
                 'nombres' => 'required|string|max:255',
                 'apellidos' => 'required|string|max:255',
                 'edad' => 'required|integer|min:0',
-                'parentesco' => 'required|string|max:100',
+                'parentesco_id' => 'required|exists:parentesco,id',
                 'ingreso_mensual' => 'required|numeric|min:0'
             ]);
 
@@ -54,7 +55,7 @@ class IntegranteHogarController extends Controller
             'nombres' => 'required|string|max:255',
             'apellidos' => 'required|string|max:255',
             'edad' => 'required|integer|min:0',
-            'parentesco' => 'required|string|max:100',
+            'parentesco_id' => 'required|exists:parentesco,id',
             'ingreso_mensual' => 'required|numeric|min:0'
         ]);
 

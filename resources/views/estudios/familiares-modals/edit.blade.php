@@ -14,32 +14,52 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label>Nombre(s)</label>
-                            <input type="text" name="nombres" class="form-control" value="{{ $familiar->nombres }}" required>
+                            <input type="text" name="nombres" class="form-control"
+                                value="{{ $familiar->nombres }}" required
+                                oninput="this.value = this.value.toUpperCase().replace(/[^A-ZÑ\s]/g, '')">
                         </div>
                         <div class="col-md-3 mb-3">
                             <label>Apellido paterno</label>
-                            <input type="text" name="primer_apellido" class="form-control" value="{{ $familiar->primer_apellido }}" required>
+                            <input type="text" name="primer_apellido" class="form-control"
+                                value="{{ $familiar->primer_apellido }}" required
+                                oninput="this.value = this.value.toUpperCase().replace(/[^A-ZÑ\s]/g, '')">
                         </div>
                         <div class="col-md-3 mb-3">
                             <label>Apellido materno</label>
-                            <input type="text" name="segundo_apellido" class="form-control" value="{{ $familiar->segundo_apellido }}">
+                            <input type="text" name="segundo_apellido" class="form-control"
+                                value="{{ $familiar->segundo_apellido }}"
+                                oninput="this.value = this.value.toUpperCase().replace(/[^A-ZÑ\s]/g, '')">
                         </div>
                         <div class="col-md-6 mb-3">
                             <label>CURP</label>
-                            <input type="text" name="curp" class="form-control" value="{{ $familiar->curp }}">
+                            <input type="text" name="curp" class="form-control text-uppercase"
+                                value="{{ $familiar->curp }}"
+                                maxlength="18"
+                                pattern="[A-Z]{4}[0-9]{6}[A-Z]{6}[0-9A-Z]{2}"
+                                title="La CURP debe tener 18 caracteres (4 letras, 6 números, 6 letras, 2 alfanuméricos)"
+                                oninput="this.value = this.value.toUpperCase().replace(/[^A-ZÑ0-9]/g, '')"
+                                required>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label>Teléfono</label>
-                            <input type="text" name="telefono" class="form-control" value="{{ $familiar->telefono }}">
+                            <input type="tel" name="telefono" class="form-control"
+                                value="{{ $familiar->telefono }}"
+                                oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                                maxlength="10"
+                                pattern="[0-9]{10}"
+                                title="El teléfono debe tener exactamente 10 dígitos numéricos"
+                                required>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label>Relación o parentesco</label>
-                            <select name="relacion_parentezco" class="form-select" required>
-                                <option value="">Seleccione...</option>
-                                <option value="Padre/Madre" {{ $familiar->relacion_parentezco == 'Padre/Madre' ? 'selected' : '' }}>Padre/Madre</option>
-                                <option value="Hijo/Hija" {{ $familiar->relacion_parentezco == 'Hijo/Hija' ? 'selected' : '' }}>Hijo/Hija</option>
-                                <option value="Hermano/Hermana" {{ $familiar->relacion_parentezco == 'Hermano/Hermana' ? 'selected' : '' }}>Hermano/Hermana</option>
-                                <option value="Otro" {{ $familiar->relacion_parentezco == 'Otro' ? 'selected' : '' }}>Otro</option>
+                            <select name="parentesco_id" class="form-select" required>
+                                <option value="" selected disabled>Seleccione un parentesco...</option>
+                                @foreach($parentescos->where('id', '!=', 24) as $parentesco)
+                                <option value="{{ $parentesco->id }}"
+                                    {{ $familiar->parentesco_id == $parentesco->id ? 'selected' : '' }}>
+                                    {{ $parentesco->descripcion }}
+                                </option>
+                                @endforeach
                             </select>
                         </div>
                     </div>

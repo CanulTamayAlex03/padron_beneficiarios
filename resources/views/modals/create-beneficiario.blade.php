@@ -277,7 +277,7 @@
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
                                 <label for="create_telefono" class="form-label">Teléfono</label>
-                                <input type="text" class="form-control" id="create_telefono" name="telefono" placeholder="9991234567" maxlength="12" required>
+                                <input type="text" class="form-control" id="create_telefono" name="telefono" placeholder="9991234567" maxlength="10" required>
                             </div>
                         </div>
 

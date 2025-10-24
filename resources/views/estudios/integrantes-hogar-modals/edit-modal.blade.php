@@ -1,4 +1,3 @@
-
 @if(isset($estudio) && $estudio->id)
 @foreach($estudio->integrantesHogar as $integrante)
 <div class="modal fade" id="editIntegranteModal{{ $integrante->id }}" tabindex="-1" aria-hidden="true">
@@ -15,11 +14,15 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label>Nombre(s) *</label>
-                            <input type="text" name="nombres" class="form-control" value="{{ $integrante->nombres }}">
+                            <input type="text" name="nombres" class="form-control uppercase-edit"
+                                value="{{ $integrante->nombres }}"
+                                oninput="this.value = this.value.toUpperCase().replace(/[^A-ZÑ\s]/g, '')">
                         </div>
                         <div class="col-md-6 mb-3">
                             <label>Apellidos *</label>
-                            <input type="text" name="apellidos" class="form-control" value="{{ $integrante->apellidos }}">
+                            <input type="text" name="apellidos" class="form-control uppercase-edit"
+                                value="{{ $integrante->apellidos }}"
+                                oninput="this.value = this.value.toUpperCase().replace(/[^A-ZÑ\s]/g, '')">
                         </div>
                         <div class="col-md-4 mb-3">
                             <label>Edad *</label>
@@ -27,16 +30,14 @@
                         </div>
                         <div class="col-md-4 mb-3">
                             <label>Parentesco *</label>
-                            <select name="parentesco" class="form-select">
+                            <select name="parentesco_id" class="form-select" required>
                                 <option value="">Seleccione...</option>
-                                <option value="Jefe(a) de familia" {{ $integrante->parentesco == 'Jefe(a) de familia' ? 'selected' : '' }}>Jefe(a) de familia</option>
-                                <option value="Cónyuge" {{ $integrante->parentesco == 'Cónyuge' ? 'selected' : '' }}>Cónyuge</option>
-                                <option value="Hijo(a)" {{ $integrante->parentesco == 'Hijo(a)' ? 'selected' : '' }}>Hijo(a)</option>
-                                <option value="Padre" {{ $integrante->parentesco == 'Padre' ? 'selected' : '' }}>Padre</option>
-                                <option value="Madre" {{ $integrante->parentesco == 'Madre' ? 'selected' : '' }}>Madre</option>
-                                <option value="Hermano(a)" {{ $integrante->parentesco == 'Hermano(a)' ? 'selected' : '' }}>Hermano(a)</option>
-                                <option value="Otro familiar" {{ $integrante->parentesco == 'Otro familiar' ? 'selected' : '' }}>Otro familiar</option>
-                                <option value="No familiar" {{ $integrante->parentesco == 'No familiar' ? 'selected' : '' }}>No familiar</option>
+                                @foreach($parentescos as $parentesco)
+                                <option value="{{ $parentesco->id }}"
+                                    {{ $integrante->parentesco_id == $parentesco->id ? 'selected' : '' }}>
+                                    {{ $parentesco->descripcion }}
+                                </option>
+                                @endforeach
                             </select>
                         </div>
                         <div class="col-md-4 mb-3">
@@ -53,5 +54,10 @@
         </div>
     </div>
 </div>
+<style>
+    .uppercase-edit {
+        text-transform: uppercase;
+    }
+</style>
 @endforeach
 @endif

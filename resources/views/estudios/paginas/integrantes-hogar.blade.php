@@ -40,7 +40,7 @@
                     <tr>
                         <td>{{ $integrante->nombres }} {{ $integrante->apellidos }}</td>
                         <td>{{ $integrante->edad }} años</td>
-                        <td>{{ $integrante->parentesco }}</td>
+                        <td>{{ $integrante->parentesco->descripcion ?? 'N/A' }}</td>
                         <td>${{ number_format($integrante->ingreso_mensual, 2) }}</td>
                         <td class="text-center">
                             <button type="button" class="btn btn-sm btn-warning"

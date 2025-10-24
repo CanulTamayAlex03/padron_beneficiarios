@@ -17,12 +17,17 @@ class BeneficiarioFamiliar extends Model
         'segundo_apellido',
         'curp',
         'telefono',
-        'relacion_parentezco',
+        'parentesco_id',
         'beneficiario_id',
     ];
 
     public function beneficiario()
     {
         return $this->belongsTo(Beneficiario::class, 'beneficiario_id');
+    }
+
+    public function parentesco()
+    {
+        return $this->belongsTo(Parentesco::class, 'parentesco_id');
     }
 }

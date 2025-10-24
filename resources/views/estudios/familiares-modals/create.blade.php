@@ -12,42 +12,57 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label>Nombre(s)</label>
-                            <input type="text" name="nombres" class="form-control" required>
+                            <input type="text" name="nombres" class="form-control"
+                                oninput="this.value = this.value.toUpperCase().replace(/[^A-ZÑ\s]/g, '')"
+                                pattern="[A-Z\s]+"
+                                title="Solo letras mayúsculas sin acentos" required>
                         </div>
                         <div class="col-md-3 mb-3">
                             <label>Primer apellido</label>
-                            <input type="text" name="primer_apellido" class="form-control" required>
+                            <input type="text" name="primer_apellido" class="form-control"
+                                oninput="this.value = this.value.toUpperCase().replace(/[^A-ZÑ\s]/g, '')"
+                                pattern="[A-Z\s]+"
+                                title="Solo letras mayúsculas sin acentos" required>
                         </div>
                         <div class="col-md-3 mb-3">
                             <label>Segundo Apellido</label>
-                            <input type="text" name="segundo_apellido" class="form-control">
+                            <input type="text" name="segundo_apellido" class="form-control"
+                                oninput="this.value = this.value.toUpperCase().replace(/[^A-ZÑ\s]/g, '')"
+                                pattern="[A-Z\s]+"
+                                title="Solo letras mayúsculas sin acentos">
                         </div>
+
                         <div class="col-md-6 mb-3">
                             <label>CURP</label>
-                            <input type="text" name="curp" class="form-control" 
-                                   maxlength="18"
-                                   pattern="[A-Z]{4}[0-9]{6}[A-Z]{6}[0-9A-Z]{2}"
-                                   title="La CURP debe tener 18 caracteres (4 letras, 6 números, 6 letras, 2 alfanuméricos)" required>
+                            <input type="text" name="curp" class="form-control text-uppercase"
+                                maxlength="18"
+                                pattern="[A-Z]{4}[0-9]{6}[A-Z]{6}[0-9A-Z]{2}"
+                                title="La CURP debe tener 18 caracteres (4 letras, 6 números, 6 letras, 2 alfanuméricos)"
+                                oninput="this.value = this.value.toUpperCase().replace(/[^A-ZÑ0-9]/g, '')"
+                                required>
                             <div class="form-text">18 caracteres máximo</div>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label>Teléfono</label>
-                            <input type="tel" name="telefono" class="form-control" 
-                                   maxlength="12"
-                                   pattern="[0-9]{10,12}"
-                                   title="El teléfono debe tener entre 10 y 12 dígitos" required>
-                            <div class="form-text">12 dígitos máximo</div>
+                            <input type="tel" name="telefono" class="form-control"
+                                oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                                maxlength="10"
+                                pattern="[0-9]{10}"
+                                title="El teléfono debe tener exactamente 10 dígitos numéricos" required>
+                            <div class="form-text">10 dígitos máximo</div>
                         </div>
+
                         <div class="col-md-6 mb-3">
-                            <label>Relación o parentesco</label>
-                            <select name="relacion_parentezco" class="form-select" required>
-                                <option value="">Seleccione...</option>
-                                <option value="Padre/Madre">Padre/Madre</option>
-                                <option value="Hijo/Hija">Hijo/Hija</option>
-                                <option value="Hermano/Hermana">Hermano/Hermana</option>
-                                <option value="Otro">Otro</option>
+                            <label>Parentesco</label>
+                            <select name="parentesco_id" class="form-select" required>
+                                <option value="" selected disabled>Seleccione un parentesco...</option>
+                                @foreach($parentescos as $parentesco)
+                                @continue($parentesco->id == 24)
+                                <option value="{{ $parentesco->id }}">{{ $parentesco->descripcion }}</option>
+                                @endforeach
                             </select>
                         </div>
+
                     </div>
                 </div>
                 <div class="modal-footer">

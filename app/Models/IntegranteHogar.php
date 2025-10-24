@@ -17,7 +17,7 @@ class IntegranteHogar extends Model
         'nombres',
         'apellidos',
         'edad',
-        'parentesco',
+        'parentesco_id',
         'ingreso_mensual'
     ];
 
@@ -28,5 +28,10 @@ class IntegranteHogar extends Model
     public function estudioSocioeconomico(): BelongsTo
     {
         return $this->belongsTo(EstudioSocioeconomico::class, 'estudio_socioeconomico_id');
+    }
+
+    public function parentesco(): BelongsTo
+    {
+        return $this->belongsTo(Parentesco::class, 'parentesco_id');
     }
 }

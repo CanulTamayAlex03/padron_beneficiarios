@@ -47,6 +47,7 @@ class EstudioSocioeconomicoController extends Controller
 
         $serviciosSalud = ServicioSalud::all();
         $escolaridades = Escolaridad::all();
+        $parentescos = Parentesco::all();
 
         return view('estudios.create', compact(
             'beneficiario',
@@ -57,7 +58,8 @@ class EstudioSocioeconomicoController extends Controller
             'tiposPrograma',
             'lineasConeval',
             'serviciosSalud',
-            'escolaridades'
+            'escolaridades',
+            'parentescos'
         ));
     }
 

@@ -6,6 +6,7 @@ use App\Models\Beneficiario;
 use App\Models\Ocupacion;
 use App\Models\Estado;
 use App\Models\Municipio;
+use App\Models\Parentesco;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
@@ -193,13 +194,58 @@ class BeneficiarioController extends Controller
 
     public function checkCurp(Request $request)
     {
-        $request->validate([
-            'curp' => 'required|string|size:18'
+        $curp = $request->query('curp');
+
+        if ($curp && strlen($curp) !== 18) {
+            return response()->json([
+                'exists' => false,
+                'error' => 'La CURP debe tener 18 caracteres'
+            ]);
+        }
+
+        $beneficiario = Beneficiario::where('curp', $curp)
+            ->with(['estudiosSocioeconomicos' => function ($query) {
+                $query->orderBy('created_at', 'desc');
+            }])
+            ->first();
+
+        if ($beneficiario) {
+            $tieneEstudios = $beneficiario->estudiosSocioeconomicos->isNotEmpty();
+            $estudioId = null;
+            $folioEstudio = null;
+            $rutaEdicion = null;
+
+            if ($tieneEstudios) {
+                $estudio = $beneficiario->estudiosSocioeconomicos->first();
+                $estudioId = $estudio->id;
+                $folioEstudio = $estudio->folio;
+                $rutaEdicion = route('beneficiarios.estudios.editar', [$beneficiario->id, $estudioId]);
+            } else {
+                $rutaEdicion = route('beneficiarios.editar', $beneficiario->id);
+            }
+
+            return response()->json([
+                'exists' => true,
+                'beneficiario' => [
+                    'id' => $beneficiario->id,
+                    'nombres' => $beneficiario->nombres,
+                    'primer_apellido' => $beneficiario->primer_apellido,
+                    'segundo_apellido' => $beneficiario->segundo_apellido,
+                    'curp' => $beneficiario->curp,
+                    'tiene_estudios' => $tieneEstudios,
+                    'estudio_id' => $estudioId,
+                    'folio_estudio' => $folioEstudio,
+                    'total_estudios' => $beneficiario->estudiosSocioeconomicos->count(),
+                    'ruta_edicion' => $rutaEdicion,
+                    'ruta_vista_resultado' => $tieneEstudios ?
+                        route('estudios.vista-resultado', $estudioId) : null
+                ]
+            ]);
+        }
+
+        return response()->json([
+            'exists' => false
         ]);
-
-        $exists = Beneficiario::whereRaw('LOWER(curp) = ?', [strtolower($request->curp)])->exists();
-
-        return response()->json(['exists' => $exists]);
     }
 
 
@@ -217,12 +263,14 @@ class BeneficiarioController extends Controller
         $ocupaciones = Ocupacion::where('activo', 1)->orderBy('ocupacion')->get();
         $estados = Estado::orderBy('nombre')->get();
         $municipios = Municipio::orderBy('descripcion')->get();
+        $parentescos = Parentesco::all();
 
         return view('beneficiarios.editar', compact(
             'beneficiario',
             'ocupaciones',
             'estados',
-            'municipios'
+            'municipios',
+            'parentescos'
         ));
     }
 

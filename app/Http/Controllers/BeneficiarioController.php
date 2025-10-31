@@ -11,6 +11,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 
+use App\Models\EstudioSocioeconomico;
+
 class BeneficiarioController extends Controller
 {
     public function index(Request $request)
@@ -194,60 +196,33 @@ class BeneficiarioController extends Controller
 
     public function checkCurp(Request $request)
     {
-        $curp = $request->query('curp');
+        try {
+            $curp = $request->query('curp');
 
-        if ($curp && strlen($curp) !== 18) {
-            return response()->json([
-                'exists' => false,
-                'error' => 'La CURP debe tener 18 caracteres'
-            ]);
-        }
-
-        $beneficiario = Beneficiario::where('curp', $curp)
-            ->with(['estudiosSocioeconomicos' => function ($query) {
-                $query->orderBy('created_at', 'desc');
-            }])
-            ->first();
-
-        if ($beneficiario) {
-            $tieneEstudios = $beneficiario->estudiosSocioeconomicos->isNotEmpty();
-            $estudioId = null;
-            $folioEstudio = null;
-            $rutaEdicion = null;
-
-            if ($tieneEstudios) {
-                $estudio = $beneficiario->estudiosSocioeconomicos->first();
-                $estudioId = $estudio->id;
-                $folioEstudio = $estudio->folio;
-                $rutaEdicion = route('beneficiarios.estudios.editar', [$beneficiario->id, $estudioId]);
-            } else {
-                $rutaEdicion = route('beneficiarios.editar', $beneficiario->id);
+            if (!$curp || strlen($curp) !== 18) {
+                return response()->json(['exists' => false]);
             }
 
-            return response()->json([
-                'exists' => true,
-                'beneficiario' => [
-                    'id' => $beneficiario->id,
-                    'nombres' => $beneficiario->nombres,
-                    'primer_apellido' => $beneficiario->primer_apellido,
-                    'segundo_apellido' => $beneficiario->segundo_apellido,
-                    'curp' => $beneficiario->curp,
-                    'tiene_estudios' => $tieneEstudios,
-                    'estudio_id' => $estudioId,
-                    'folio_estudio' => $folioEstudio,
-                    'total_estudios' => $beneficiario->estudiosSocioeconomicos->count(),
-                    'ruta_edicion' => $rutaEdicion,
-                    'ruta_vista_resultado' => $tieneEstudios ?
-                        route('estudios.vista-resultado', $estudioId) : null
-                ]
-            ]);
+            $beneficiario = Beneficiario::where('curp', $curp)->first();
+
+            if ($beneficiario) {
+                return response()->json([
+                    'exists' => true,
+                    'beneficiario' => [
+                        'id' => $beneficiario->id,
+                        'nombres' => $beneficiario->nombres,
+                        'primer_apellido' => $beneficiario->primer_apellido,
+                        'segundo_apellido' => $beneficiario->segundo_apellido,
+                        'ruta_edicion' => route('beneficiarios.editar', $beneficiario->id)
+                    ]
+                ]);
+            }
+
+            return response()->json(['exists' => false]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error interno'], 500);
         }
-
-        return response()->json([
-            'exists' => false
-        ]);
     }
-
 
     public function getMunicipiosByEstado($estadoId)
     {

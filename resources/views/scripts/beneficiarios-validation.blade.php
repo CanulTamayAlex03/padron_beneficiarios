@@ -7,7 +7,11 @@
             const curpInput = document.getElementById('create_curp');
             const curpError = document.getElementById('curp-error');
             const curpStatus = document.getElementById('curp-status');
-            const curp = curpInput.value.trim();
+            const curpConfirmInput = document.getElementById('create_curp_confirm');
+            const curp = curpInput.value.trim().toUpperCase();
+
+            // Actualizar el input con valor en mayúsculas
+            curpInput.value = curp;
 
             // Limpiar timeout anterior
             if (curpCheckTimeout) {
@@ -19,6 +23,15 @@
                 curpError.classList.add('d-none');
                 curpStatus.classList.add('d-none');
                 window.curpValida = true;
+
+                // Deshabilitar campo de confirmación
+                if (curpConfirmInput) {
+                    curpConfirmInput.disabled = true;
+                    curpConfirmInput.value = '';
+                }
+
+                // Ocultar alerta de CURP registrada
+                document.getElementById('curp-registrada-alert').classList.add('d-none');
                 window.actualizarEstadoBoton();
                 return;
             }
@@ -28,6 +41,14 @@
                 curpError.classList.remove('d-none');
                 curpStatus.classList.add('d-none');
                 window.curpValida = false;
+
+                // Habilitar campo de confirmación
+                if (curpConfirmInput) {
+                    curpConfirmInput.disabled = false;
+                }
+
+                // Ocultar alerta de CURP registrada
+                document.getElementById('curp-registrada-alert').classList.add('d-none');
                 window.actualizarEstadoBoton();
                 return;
             } else {
@@ -35,27 +56,30 @@
                 window.curpValida = true;
             }
 
+            // Habilitar campo de confirmación
+            if (curpConfirmInput) {
+                curpConfirmInput.disabled = false;
+            }
+
             // Mostrar "verificando..." mientras se consulta
+            window.curpCheckInProgress = true;
             curpStatus.innerHTML = '<span class="text-warning"><i class="bi bi-hourglass-split"></i> Verificando...</span>';
             curpStatus.classList.remove('d-none');
+            window.actualizarEstadoBoton();
 
             // Verificar si la CURP ya existe (con debounce)
             curpCheckTimeout = setTimeout(() => {
                 verificarCurpExistente(curp);
-            }, 800); // 800ms de delay
-
-            // Validar coincidencia si el campo de confirmación no está vacío
-            const curpConfirm = document.getElementById('create_curp_confirm').value.trim();
-            if (curpConfirm !== '') {
-                window.validarConfirmacionCurp();
-            }
+            }, 800);
 
             window.actualizarEstadoBoton();
         }
 
-        // Función para verificar si la CURP ya existe
         function verificarCurpExistente(curp) {
             const curpStatus = document.getElementById('curp-status');
+            const curpAlert = document.getElementById('curp-registrada-alert');
+            const beneficiarioInfo = document.getElementById('beneficiario-existente-info');
+            const beneficiarioLink = document.getElementById('beneficiario-existente-link');
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
             fetch(`{{ route('beneficiarios.check-curp') }}?curp=${encodeURIComponent(curp)}`, {
@@ -65,30 +89,53 @@
                         'X-Requested-With': 'XMLHttpRequest'
                     }
                 })
-
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error('Error en la respuesta del servidor');
+                        throw new Error(`Error HTTP: ${response.status}`);
                     }
                     return response.json();
                 })
                 .then(data => {
+                    window.curpCheckInProgress = false;
+
                     if (data.exists) {
+                        const beneficiario = data.beneficiario;
+
+                        const nombreCompleto = [
+                                beneficiario.nombres,
+                                beneficiario.primer_apellido,
+                                beneficiario.segundo_apellido
+                            ]
+                            .filter(part => part && part !== 'null' && part !== null)
+                            .join(' ')
+                            .trim();
+
                         curpStatus.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle"></i> Esta CURP ya está registrada</span>';
                         curpStatus.classList.remove('d-none');
                         window.curpValida = false;
+
+                        beneficiarioInfo.textContent = nombreCompleto;
+                        beneficiarioLink.href = beneficiario.ruta_edicion;
+
+                        curpAlert.classList.remove('d-none');
                     } else {
+                        // CURP disponible
                         curpStatus.innerHTML = '<span class="text-success"><i class="bi bi-check-circle"></i> CURP disponible</span>';
                         curpStatus.classList.remove('d-none');
                         window.curpValida = true;
+                        curpAlert.classList.add('d-none');
                     }
+
                     window.actualizarEstadoBoton();
                 })
                 .catch(error => {
+                    window.curpCheckInProgress = false;
                     console.error('Error al verificar CURP:', error);
+
                     curpStatus.innerHTML = '<span class="text-warning"><i class="bi bi-exclamation-triangle"></i> Error al verificar</span>';
                     curpStatus.classList.remove('d-none');
-                    window.curpValida = true; // Permitir enviar aunque falle la verificación
+                    window.curpValida = true;
+                    curpAlert.classList.add('d-none');
                     window.actualizarEstadoBoton();
                 });
         }
@@ -100,7 +147,10 @@
             const curpConfirmError = document.getElementById('curp-confirm-error');
 
             const curp = curpInput.value.trim();
-            const curpConfirm = curpConfirmInput.value.trim();
+            const curpConfirm = curpConfirmInput.value.trim().toUpperCase();
+
+            // Actualizar valor en mayúsculas
+            curpConfirmInput.value = curpConfirm;
 
             // Si ambos están vacíos, es válido
             if (curp === '' && curpConfirm === '') {
@@ -127,6 +177,11 @@
             } else {
                 curpConfirmError.classList.add('d-none');
                 window.curpCoincide = true;
+
+                // Cuando coinciden, verificar si ya existe
+                if (curp.length === 18) {
+                    window.validarCurp();
+                }
             }
 
             window.actualizarEstadoBoton();
@@ -152,7 +207,7 @@
         console.log('Funciones de validación configuradas correctamente');
     });
 
-
+    // El resto del código (edad, municipios, etc.) se mantiene igual
     document.addEventListener('DOMContentLoaded', function() {
         const fechaNacInput = document.getElementById('create_fecha_nac');
         const edadInput = document.getElementById('create_edad');
@@ -189,7 +244,6 @@
         const municipioOptions = Array.from(municipioSelect.options);
 
         function filterMunicipiosByEstado(estadoId) {
-            // Mostrar todos los municipios si no hay estado seleccionado
             if (!estadoId) {
                 municipioOptions.forEach(option => {
                     option.style.display = '';
@@ -198,7 +252,6 @@
                 return;
             }
 
-            // Filtrar municipios por estado
             municipioOptions.forEach(option => {
                 if (option.value === '' || option.getAttribute('data-estado') === estadoId) {
                     option.style.display = '';
@@ -207,22 +260,18 @@
                 }
             });
 
-            // Resetear selección si el municipio actual no pertenece al estado
             const selectedOption = municipioSelect.options[municipioSelect.selectedIndex];
             if (selectedOption && selectedOption.getAttribute('data-estado') !== estadoId && selectedOption.value !== '') {
                 municipioSelect.value = '';
             }
         }
 
-        // Event listener para cambio de estado
         estadoVivSelect.addEventListener('change', function() {
             filterMunicipiosByEstado(this.value);
         });
 
-        // Inicializar filtro al cargar la página
         filterMunicipiosByEstado(estadoVivSelect.value);
     });
-
 
     document.addEventListener('DOMContentLoaded', function() {
         const editEstadoVivSelect = document.getElementById('edit_estado_viv_id');

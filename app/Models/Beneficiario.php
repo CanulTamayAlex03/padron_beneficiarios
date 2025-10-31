@@ -53,9 +53,6 @@ class Beneficiario extends Model
         'deleted_at'    => 'datetime',
     ];
 
-    /**
-     * Relaciones
-     */
 
     // Relación conn estudios socioeconómicos
     public function estudiosSocioeconomicos()

@@ -186,16 +186,15 @@
     </div>
 </div>
 
-<!-- Sección de Conclusiones -->
+<!-- Sección de Calificación Simplificada -->
 @if(isset($estudio) && $estudio->id)
 <div class="card mt-4">
-    <div class="card-header bg-info text-white">
+    <div class="card-header bg-info text-white py-2">
         <h6 class="mb-0">
-            <i class="bi bi-graph-up me-2"></i>
-            Evaluación y Conclusiones
+            <i class="bi bi-graph-up me-2"></i>Evaluación de Vulnerabilidad
         </h6>
     </div>
-    <div class="card-body">
+    <div class="card-body p-3">
         @php
             // Calcular puntuación total
             $puntosConeval = $estudio->coneval_active ? 3 : 0;
@@ -204,92 +203,65 @@
             $puntosTotales = $puntosConeval + $puntosServicioSalud + $puntosEscolaridad;
             
             // Determinar nivel de vulnerabilidad
-            $nivelVulnerabilidad = '';
-            $claseBadge = '';
-            
             if ($puntosTotales >= 1 && $puntosTotales <= 3) {
-                $nivelVulnerabilidad = 'Leve';
+                $nivelVulnerabilidad = 'Nivel Leve';
                 $claseBadge = 'bg-success';
+                $claseProgress = 'bg-success';
             } elseif ($puntosTotales >= 4 && $puntosTotales <= 6) {
-                $nivelVulnerabilidad = 'Moderada';
+                $nivelVulnerabilidad = 'Nivel Moderado';
                 $claseBadge = 'bg-warning text-dark';
+                $claseProgress = 'bg-warning';
             } elseif ($puntosTotales >= 7 && $puntosTotales <= 9) {
-                $nivelVulnerabilidad = 'Severa';
+                $nivelVulnerabilidad = 'Nivel Severo';
                 $claseBadge = 'bg-danger';
+                $claseProgress = 'bg-danger';
             } else {
-                $nivelVulnerabilidad = 'Sin datos suficientes';
+                $nivelVulnerabilidad = 'Sin datos';
                 $claseBadge = 'bg-secondary';
+                $claseProgress = 'bg-secondary';
             }
+            
+            $maximoPuntos = 9;
+            $porcentaje = ($puntosTotales / $maximoPuntos) * 100;
         @endphp
 
-        <!-- Mostrar puntuaciones individuales -->
-        <div class="row mb-4">
-            <div class="col-md-4 text-center">
-                <div class="card">
-                    <div class="card-body">
-                        <h6 class="card-title">CONEVAL</h6>
-                        <p class="card-text h4 {{ $estudio->coneval_active ? 'text-success' : 'text-muted' }}">
-                            {{ $puntosConeval }} pts
-                        </p>
-                        <small class="text-muted">
-                            @if($estudio->coneval_active)
-                            SÍ está debajo de la línea
-                            @else
-                            NO está debajo de la línea
-                            @endif
-                        </small>
-                    </div>
-                </div>
+        <!-- Puntuaciones individuales en línea -->
+        <div class="row text-center mb-3">
+            <div class="col-4 border-end">
+                <small class="text-dark d-block"><strong>CONEVAL</strong></small>
+                <small class="{{ $puntosConeval > 0 ? 'text-dark' : 'text-muted' }}">
+                    {{ $puntosConeval }} pts
+                </small>
             </div>
-            <div class="col-md-4 text-center">
-                <div class="card">
-                    <div class="card-body">
-                        <h6 class="card-title">Servicio de Salud</h6>
-                        <p class="card-text h4 {{ $puntosServicioSalud > 0 ? 'text-primary' : 'text-muted' }}">
-                            {{ $puntosServicioSalud }} pts
-                        </p>
-                        <small class="text-muted">
-                            {{ $estudio->servicioSalud ? $estudio->servicioSalud->nombre_servicio : 'No seleccionado' }}
-                        </small>
-                    </div>
-                </div>
+            <div class="col-4 border-end">
+                <small class="text-dark d-block"><strong>Salud</strong></small>
+                <small class="{{ $puntosServicioSalud > 0 ? 'text-dark' : 'text-muted' }}">
+                    {{ $puntosServicioSalud }} pts
+                </small>
             </div>
-            <div class="col-md-4 text-center">
-                <div class="card">
-                    <div class="card-body">
-                        <h6 class="card-title">Escolaridad</h6>
-                        <p class="card-text h4 {{ $puntosEscolaridad > 0 ? 'text-primary' : 'text-muted' }}">
-                            {{ $puntosEscolaridad }} pts
-                        </p>
-                        <small class="text-muted">
-                            {{ $estudio->escolaridad ? $estudio->escolaridad->nombre_escolaridad : 'No seleccionado' }}
-                        </small>
-                    </div>
-                </div>
+            <div class="col-4">
+                <small class="text-dark d-block"><strong>Escolaridad</strong></small>
+                <small class="{{ $puntosEscolaridad > 0 ? 'text-dark' : 'text-muted' }}">
+                    {{ $puntosEscolaridad }} pts
+                </small>
             </div>
         </div>
 
-        <!-- Mostrar total y conclusión -->
-        <div class="row">
-            <div class="col-12">
-                <div class="alert {{ (strpos($claseBadge, 'bg-danger') !== false) ? 'alert-danger' : (strpos($claseBadge, 'bg-warning') !== false ? 'alert-warning' : 'alert-success') }}">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5 class="alert-heading mb-1">
-                                Puntuación Total: <strong>{{ $puntosTotales }} puntos</strong>
-                            </h5>
-                            <p class="mb-0">
-                                Nivel de vulnerabilidad: 
-                                <span class="badge {{ $claseBadge }} fs-6">{{ $nivelVulnerabilidad }}</span>
-                            </p>
-                        </div>
-                        <div class="text-end">
-                            <h2 class="display-6 fw-bold mb-0">{{ $puntosTotales }}</h2>
-                            <small class="text-muted">puntos totales</small>
-                        </div>
-                    </div>
-                </div>
+        <!-- Barra de progreso compacta -->
+        <div class="progress mb-2" style="height: 20px;">
+            <div class="progress-bar {{ $claseProgress }}" 
+                 role="progressbar" 
+                 style="width: {{ $porcentaje }}%"
+                 aria-valuenow="{{ $puntosTotales }}" 
+                 aria-valuemin="0" 
+                 aria-valuemax="{{ $maximoPuntos }}">
+                <strong>{{ $puntosTotales }}/{{ $maximoPuntos }}</strong>
             </div>
+        </div>
+
+        <!-- Resultado final compacto -->
+        <div class="text-center">
+            <span class="badge {{ $claseBadge }} ">{{ $nivelVulnerabilidad }}</span>
         </div>
     </div>
 </div>

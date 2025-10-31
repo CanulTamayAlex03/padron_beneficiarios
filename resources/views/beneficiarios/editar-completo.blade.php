@@ -199,17 +199,17 @@
                         <ul class="nav nav-pills nav-justified mb-4" id="estudioTabs" role="tablist">
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link active" id="paso1-tab" data-bs-toggle="pill" data-bs-target="#paso1" type="button" role="tab">
-                                    <i class="bi bi-1-circle me-1"></i>Evaluación Económica y Familiar
+                                    <i class="bi bi-1-circle me-1"></i>Paso 1
                                 </button>
                             </li>
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link" id="paso2-tab" data-bs-toggle="pill" data-bs-target="#paso2" type="button" role="tab">
-                                    <i class="bi bi-2-circle me-1"></i>Evaluación de espacios y servicios
+                                    <i class="bi bi-2-circle me-1"></i>Paso 2
                                 </button>
                             </li>
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link" id="paso3-tab" data-bs-toggle="pill" data-bs-target="#paso3" type="button" role="tab">
-                                    <i class="bi bi-3-circle me-1"></i>Evaluación de seguridad alimentaria
+                                    <i class="bi bi-3-circle me-1"></i>Paso 3
                                 </button>
                             </li>
                         </ul>

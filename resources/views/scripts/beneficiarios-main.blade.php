@@ -7,6 +7,7 @@
         // Variables globales
         window.curpValida = true;
         window.curpCoincide = true;
+        window.curpCheckInProgress = false;
 
         window.ultimoBeneficiarioCreado = null;
         window.estudioSocioeconomicoUrl = '/estudios/create';

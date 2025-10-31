@@ -113,9 +113,6 @@
                 <span class="text-white me-3">
                     <i class="bi bi-person-circle me-1"></i>
                     {{ Auth::user()->email }}
-                    <span class="badge bg-light text-dark ms-1">
-                        {{ Auth::user()->getRoleNames()->implode(', ') }}
-                    </span>
                 </span>
             </div>
         </div>

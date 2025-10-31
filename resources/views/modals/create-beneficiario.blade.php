@@ -50,6 +50,7 @@
                     <fieldset class="border rounded p-3 mb-3">
                         <legend class="float-none w-auto px-2">Identificación</legend>
                         <div class="row g-3">
+                            {{-- Campo CURP --}}
                             <div class="col-md-6">
                                 <label for="create_curp" class="form-label">CURP</label>
                                 <input type="text" class="form-control" id="create_curp" name="curp"
@@ -64,6 +65,8 @@
                                     <i class="bi bi-check-circle"></i> <span></span>
                                 </div>
                             </div>
+
+                            {{-- Campo Confirmar CURP --}}
                             <div class="col-md-6">
                                 <label for="create_curp_confirm" class="form-label">Confirmar CURP</label>
                                 <input type="text" class="form-control" id="create_curp_confirm"
@@ -74,6 +77,21 @@
                                 <div class="form-text">No se permite copiar/pegar en este campo</div>
                                 <div id="curp-confirm-error" class="text-danger small d-none mt-1">
                                     <i class="bi bi-exclamation-circle"></i> <span></span>
+                                </div>
+                            </div>
+
+                            {{-- ALERTA DE CURP REGISTRADA --}}
+                            <div class="col-12">
+                                <div id="curp-registrada-alert" class="alert alert-warning d-none mt-2">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-exclamation-triangle me-2"></i>
+                                        <div>
+                                            <strong>La CURP pertenece a: </strong>
+                                            <a href="#" id="beneficiario-existente-link" class="fw-bold text-decoration-none">
+                                                <span id="beneficiario-existente-info"></span>
+                                            </a>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -394,5 +412,17 @@
     #edit_primer_apellido,
     #edit_segundo_apellido {
         text-transform: uppercase;
+    }
+
+    #beneficiario-existente-link {
+        color: #856404;
+        border-bottom: 1px dotted #856404;
+        transition: all 0.2s ease;
+    }
+
+    #beneficiario-existente-link:hover {
+        color: #533f03;
+        border-bottom: 1px solid #533f03;
+        text-decoration: none;
     }
 </style>

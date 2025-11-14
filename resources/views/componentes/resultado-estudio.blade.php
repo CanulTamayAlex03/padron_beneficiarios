@@ -1,16 +1,17 @@
 @if($estudio->res_estudio_1 && $estudio->res_estudio_2 && $estudio->res_estudio_3)
 @php
-    // Función auxiliar para definir color según el nivel
-    function colorResultado($valor) {
-        switch (strtolower($valor)) {
-            case 'leve':
-                return 'text-success';
-            case 'moderada':
-                return 'text-warning';
-            case 'severa':
-                return 'text-danger';
-            default:
-                return 'text-secondary';
+    if (!function_exists('colorResultado')) {
+        function colorResultado($valor) {
+            switch (strtolower($valor)) {
+                case 'leve':
+                    return 'text-success';
+                case 'moderada':
+                    return 'text-warning';
+                case 'severa':
+                    return 'text-danger';
+                default:
+                    return 'text-secondary';
+            }
         }
     }
 
@@ -29,7 +30,6 @@
         : 0;
     $puntosTotales = $puntosEstudio1 + $puntosEstudio2 + $puntosEstudio3 + $puntosOcupacion;
 @endphp
-
 
 
 <div class="card border-0 shadow-lg animate__animated animate__fadeInUp">

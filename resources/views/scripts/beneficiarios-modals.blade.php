@@ -83,7 +83,6 @@
                 if (document.getElementById('edit_estado_id')) document.getElementById('edit_estado_id').value = 'Cargando...';
                 if (document.getElementById('edit_ocupacion_id')) document.getElementById('edit_ocupacion_id').value = 'Cargando...';
 
-                // Nuevos campos de domicilio
                 if (document.getElementById('edit_calle')) document.getElementById('edit_calle').value = 'Cargando...';
                 if (document.getElementById('edit_estado_viv_id')) document.getElementById('edit_estado_viv_id').value = 'Cargando...';
                 if (document.getElementById('edit_municipio_id')) document.getElementById('edit_municipio_id').value = 'Cargando...';
@@ -148,11 +147,8 @@
                     if (document.getElementById('edit_telefono')) document.getElementById('edit_telefono').value = d.telefono ?? '';
                     if (document.getElementById('edit_referencias_domicilio')) document.getElementById('edit_referencias_domicilio').value = d.referencias_domicilio ?? '';
 
-                    // Filtrar municipios según el estado seleccionado
                     if (document.getElementById('edit_estado_viv_id') && document.getElementById('edit_municipio_id')) {
-                        filterEditMunicipiosByEstado(d.estado_viv_id);
 
-                        // Establecer el municipio después de un pequeño delay para que se complete el filtrado
                         setTimeout(() => {
                             if (document.getElementById('edit_municipio_id')) {
                                 document.getElementById('edit_municipio_id').value = d.municipio_id ?? '';
@@ -570,34 +566,4 @@
         console.log('Event listeners de modals configurados correctamente');
     });
 
-    /* ---------- Función para filtrar municipios en edición ---------- */
-    function filterEditMunicipiosByEstado(estadoId) {
-        const editEstadoVivSelect = document.getElementById('edit_estado_viv_id');
-        const editMunicipioSelect = document.getElementById('edit_municipio_id');
-
-        if (!editMunicipioSelect) return;
-
-        const editMunicipioOptions = Array.from(editMunicipioSelect.options);
-
-        if (!estadoId) {
-            editMunicipioOptions.forEach(option => {
-                option.style.display = '';
-            });
-            editMunicipioSelect.value = '';
-            return;
-        }
-
-        editMunicipioOptions.forEach(option => {
-            if (option.value === '' || option.getAttribute('data-estado') === estadoId) {
-                option.style.display = '';
-            } else {
-                option.style.display = 'none';
-            }
-        });
-
-        const selectedOption = editMunicipioSelect.options[editMunicipioSelect.selectedIndex];
-        if (selectedOption && selectedOption.getAttribute('data-estado') !== estadoId && selectedOption.value !== '') {
-            editMunicipioSelect.value = '';
-        }
-    }
 </script>

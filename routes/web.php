@@ -32,6 +32,9 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/api/beneficiarios/{beneficiario}/estudios', [BeneficiarioController::class, 'getEstudiosApi'])
             ->name('api.beneficiarios.estudios');
+
+        Route::get('/api/municipios/{municipio}/localidades', [BeneficiarioController::class, 'getLocalidadesByMunicipio'])
+            ->name('api.municipios.localidades');
     });
 
     Route::post('/beneficiarios', [BeneficiarioController::class, 'store'])
@@ -89,14 +92,24 @@ Route::middleware('auth')->group(function () {
         ->middleware('auth');
 
     // ================== LINEAS CONEVAL ==================
-    Route::resource('lineas-coneval', LineaConevalController::class);
+    Route::middleware('permission:ver lineas coneval')->group(function () {
+        Route::get('lineas-coneval', [LineaConevalController::class, 'index'])->name('lineas-coneval.index');
+        Route::get('lineas-coneval/por-periodo', [LineaConevalController::class, 'getByPeriodo'])
+            ->name('lineas-coneval.por-periodo');
+    });
 
-    Route::get('lineas-coneval/por-periodo', [LineaConevalController::class, 'getByPeriodo'])
-        ->name('lineas-coneval.por-periodo');
+    Route::resource('lineas-coneval', LineaConevalController::class)->except(['index']);
+    Route::post('lineas-coneval/{lineaConeval}/toggle-activo', [LineaConevalController::class, 'toggleActivo'])
+        ->name('lineas-coneval.toggle-activo');
+    Route::post('lineas-coneval/activar-conjunto', [LineaConevalController::class, 'activarConjunto'])
+        ->name('lineas-coneval.activar-conjunto');
+
 
     // Rutas para resultados de estudios
     Route::get('/beneficiarios/{beneficiario}/estudios-completos', [BeneficiarioController::class, 'getEstudiosCompletos']);
     Route::get('/estudios/{estudio}/vista-resultado', [EstudioSocioeconomicoController::class, 'vistaResultado']);
+
+    Route::get('/beneficiarios/{id}/resultados', [BeneficiarioController::class, 'mostrarResultados']);
 
 
     // ================== PANEL ADMINISTRADOR ==================

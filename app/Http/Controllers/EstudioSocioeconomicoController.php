@@ -43,7 +43,7 @@ class EstudioSocioeconomicoController extends Controller
         $programas = Programa::with('tiposPrograma')->get();
         $tiposPrograma = TipoPrograma::all();
 
-        $lineasConeval = LineaConeval::where('periodo', '2025-03-01')->get();
+        $lineasConeval = $this->obtenerLineasConeval($estudio);
 
         $serviciosSalud = ServicioSalud::all();
         $escolaridades = Escolaridad::all();
@@ -110,10 +110,12 @@ class EstudioSocioeconomicoController extends Controller
 
             $estudio = EstudioSocioeconomico::create($datosCompletos);
 
-            return redirect()->route('beneficiarios.estudios.editar', [
+            return redirect()->route('beneficiarios', [
                 'beneficiario' => $estudio->beneficiario_id,
                 'estudio' => $estudio->id
-            ])->with('success', 'Estudio socioeconómico creado exitosamente. Complete la información restante.');
+            ])
+                ->with('success', 'Estudio socioeconómico creado exitosamente. Complete la información restante.')
+                ->with('abrir_resultados', $estudio->beneficiario_id);
         } catch (\Exception $e) {
             Log::error('Error al crear estudio socioeconómico: ' . $e->getMessage());
 
@@ -159,7 +161,7 @@ class EstudioSocioeconomicoController extends Controller
         $estados = Estado::orderBy('nombre')->get();
         $municipios = Municipio::orderBy('descripcion')->get();
 
-        $lineasConeval = LineaConeval::where('periodo', '2025-03-01')->get();
+        $lineasConeval = $this->obtenerLineasConeval($estudio);
 
         $serviciosSalud = ServicioSalud::all();
         $escolaridades = Escolaridad::all();
@@ -230,9 +232,14 @@ class EstudioSocioeconomicoController extends Controller
             $datosActualizados = array_merge($validated, $resultados);
 
             $estudio->update($datosActualizados);
+            $estudio->load('beneficiario');
 
-            return redirect()->route('beneficiarios.estudios.editar', [$estudio->beneficiario_id, $estudio->id])
-                ->with('success', 'Estudio socioeconómico actualizado exitosamente');
+            return redirect()->route('beneficiarios', [$estudio->beneficiario_id, $estudio->id])
+                ->with('success', 'Estudio socioeconómico del beneficiario "'
+                    . $estudio->beneficiario->nombres . ' '
+                    . $estudio->beneficiario->primer_apellido
+                    . '" (Folio: ' . $estudio->folio . ') actualizado exitosamente.')
+                ->with('abrir_resultados', $estudio->beneficiario_id);
         } catch (\Exception $e) {
             Log::error('Error al actualizar estudio socioeconómico: ' . $e->getMessage());
 
@@ -245,6 +252,32 @@ class EstudioSocioeconomicoController extends Controller
             'coneval_active' => $request->input('coneval_active', 0),
         ]);
     }
+
+    private function obtenerLineasConeval($estudio = null)
+    {
+        if ($estudio && $estudio->linea_coneval_id) {
+            $lineaSeleccionada = LineaConeval::find($estudio->linea_coneval_id);
+
+            if ($lineaSeleccionada && $lineaSeleccionada->activo == 0) {
+                return collect([$lineaSeleccionada]);
+            }
+
+            if ($lineaSeleccionada && $lineaSeleccionada->activo == 1) {
+                return LineaConeval::where('activo', 1)
+                    ->whereIn('zona', ['Rural', 'Urbana', 'Semiurbano'])
+                    ->orderBy('periodo', 'desc')
+                    ->orderByRaw("FIELD(zona, 'Rural', 'Urbana', 'Semiurbano')")
+                    ->get();
+            }
+        }
+
+        return LineaConeval::where('activo', 1)
+            ->whereIn('zona', ['Rural', 'Urbana', 'Semiurbano'])
+            ->orderBy('periodo', 'desc')
+            ->orderByRaw("FIELD(zona, 'Rural', 'Urbana', 'Semiurbano')")
+            ->get();
+    }
+
 
     public function destroy(EstudioSocioeconomico $estudio)
     {

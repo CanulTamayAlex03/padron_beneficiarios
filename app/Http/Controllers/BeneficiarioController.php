@@ -7,6 +7,7 @@ use App\Models\Ocupacion;
 use App\Models\Estado;
 use App\Models\Municipio;
 use App\Models\Parentesco;
+use App\Models\Programa;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
@@ -17,10 +18,65 @@ class BeneficiarioController extends Controller
 {
     public function index(Request $request)
     {
+        $programas = Programa::with('tiposPrograma')->get();
+
         $query = Beneficiario::query()->with(['estudiosSocioeconomicos', 'estado', 'ocupacion']);
 
-        if ($request->has('curp') && !empty($request->curp)) {
-            $query->where('curp', 'like', '%' . $request->curp . '%');
+        if ($request->hasAny(['nombre_completo', 'curp', 'programa_id', 'tipo_programa_id', 'con_estudios'])) {
+
+            $exactMatch = $request->boolean('exact_match');
+
+            if ($request->filled('nombre_completo')) {
+                $searchTerm = $request->nombre_completo;
+
+                if ($exactMatch) {
+                    $query->where(function ($q) use ($searchTerm) {
+                        $q->where('nombres', $searchTerm)
+                            ->orWhere('primer_apellido', $searchTerm)
+                            ->orWhere('segundo_apellido', $searchTerm);
+                    });
+                } else {
+                    $words = explode(' ', $searchTerm);
+
+                    $query->where(function ($q) use ($words) {
+                        foreach ($words as $word) {
+                            if (strlen(trim($word)) > 0) {
+                                $q->where(function ($innerQ) use ($word) {
+                                    $innerQ->where('nombres', 'like', '%' . $word . '%')
+                                        ->orWhere('primer_apellido', 'like', '%' . $word . '%')
+                                        ->orWhere('segundo_apellido', 'like', '%' . $word . '%');
+                                });
+                            }
+                        }
+                    });
+                }
+            }
+
+            if ($request->filled('curp')) {
+                if ($exactMatch) {
+                    $query->where('curp', $request->curp);
+                } else {
+                    $query->where('curp', 'like', '%' . $request->curp . '%');
+                }
+            }
+
+            if ($request->filled('programa_id')) {
+                $query->whereHas('estudiosSocioeconomicos', function ($q) use ($request) {
+                    $q->where('programa_id', $request->programa_id);
+
+                    if ($request->filled('tipo_programa_id')) {
+                        $q->where('tipo_programa_id', $request->tipo_programa_id);
+                    }
+                });
+            }
+
+            if ($request->has('con_estudios')) {
+                if ($request->con_estudios == '1') {
+                    $query->has('estudiosSocioeconomicos');
+                } elseif ($request->con_estudios == '0') {
+                    $query->doesntHave('estudiosSocioeconomicos');
+                }
+            }
         }
 
         $query->orderBy('id', 'desc');
@@ -36,7 +92,7 @@ class BeneficiarioController extends Controller
         $estados = Estado::orderBy('nombre')->get();
         $municipios = Municipio::orderBy('descripcion')->get();
 
-        return view('beneficiarios', compact('beneficiarios', 'ocupaciones', 'estados', 'municipios'));
+        return view('beneficiarios', compact('beneficiarios', 'ocupaciones', 'estados', 'municipios', 'programas'));
     }
 
     public function store(Request $request)
@@ -233,6 +289,26 @@ class BeneficiarioController extends Controller
         return response()->json($municipios);
     }
 
+    public function getLocalidadesByMunicipio($municipioId)
+    {
+        try {
+            $municipiosConLocalidades = range(2294, 2399);
+
+            if (!in_array($municipioId, $municipiosConLocalidades)) {
+                return response()->json([]);
+            }
+
+            $localidades = \App\Models\Localidad::where('municipio_id', $municipioId)
+                ->orderBy('id')
+                ->get(['id', 'nom_loc', 'cvegeo']);
+
+            return response()->json($localidades);
+        } catch (\Exception $e) {
+            Log::error('Error cargando localidades: ' . $e->getMessage());
+            return response()->json([], 500);
+        }
+    }
+
     public function editarBeneficiario(Beneficiario $beneficiario)
     {
         $ocupaciones = Ocupacion::where('activo', 1)->orderBy('ocupacion')->get();
@@ -378,5 +454,53 @@ class BeneficiarioController extends Controller
                 'error' => 'Error al cargar los estudios: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    public function cargarResultados($id)
+    {
+        // Buscar beneficiario y sus estudios socioeconómicos
+        $beneficiario = \App\Models\Beneficiario::with('estudiosSocioeconomicos')->find($id);
+
+        if (!$beneficiario) {
+            return response()->json(['error' => 'Beneficiario no encontrado'], 404);
+        }
+
+        // Renderizar la vista parcial con los resultados
+        $html = '';
+        $index = 1;
+
+        foreach ($beneficiario->estudiosSocioeconomicos as $estudio) {
+            $html .= view('componentes.resultado-estudio', compact('estudio', 'index'))->render();
+            $index++;
+        }
+
+        if ($html === '') {
+            $html = '<p class="text-center text-muted">Este beneficiario no tiene estudios registrados.</p>';
+        }
+
+        return response($html);
+    }
+
+    public function mostrarResultados($id)
+    {
+        $beneficiario = \App\Models\Beneficiario::with('estudiosSocioeconomicos')->find($id);
+
+        if (!$beneficiario) {
+            return response()->json(['error' => 'Beneficiario no encontrado'], 404);
+        }
+
+        $html = '';
+        $index = 1;
+
+        foreach ($beneficiario->estudiosSocioeconomicos as $estudio) {
+            $html .= view('componentes.resultado-estudio', compact('estudio', 'index'))->render();
+            $index++;
+        }
+
+        if ($html === '') {
+            $html = '<p class="text-center text-muted">Este beneficiario no tiene estudios registrados.</p>';
+        }
+
+        return response($html);
     }
 }

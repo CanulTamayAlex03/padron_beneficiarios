@@ -135,6 +135,7 @@
                     <fieldset class="border rounded p-3 mb-3">
                         <legend class="float-none w-auto px-2">Características</legend>
                         <div class="row">
+                            <!--
                             <div class="col-md-6">
                                 <input type="hidden" name="discapacidad" value="0">
                                 <div class="form-check">
@@ -149,6 +150,7 @@
                                     <label class="form-check-label" for="create_indigena">Indígena</label>
                                 </div>
                             </div>
+                            -->
                             <div class="col-md-6">
                                 <input type="hidden" name="maya_hablante" value="0">
                                 <div class="form-check">
@@ -195,7 +197,7 @@
                         </div>
                     </fieldset>
 
-                    {{-- DATOS DE DOMICILIO (NUEVOS CAMPOS) --}}
+                    {{-- DATOS DE DOMICILIO  --}}
                     <fieldset class="border rounded p-3 mb-3">
                         <legend class="float-none w-auto px-2">Domicilio</legend>
 
@@ -250,7 +252,6 @@
                             </div>
                         </div>
 
-                        {{-- Estado y Municipio --}}
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
                                 <label for="create_estado_viv_id" class="form-label">Estado de residencia</label>
@@ -283,14 +284,23 @@
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
                                 <label for="create_localidad" class="form-label">Localidad</label>
-                                <input type="text" class="form-control" id="create_localidad" name="localidad" placeholder="Nombre de la localidad">
+
+                                <input type="text" class="form-control" id="create_localidad_input" name="localidad" 
+                                    placeholder="Nombre de la localidad">
+
+                                <select class="form-control d-none" id="create_localidad_select" name="localidad">
+                                    <option value="">Seleccione una localidad</option>
+                                </select>
+
+                                <div class="form-text">
+                                    <span id="create_localidad_hint">Escriba el nombre de la localidad</span>
+                                </div>
                             </div>
                             <div class="col-md-6">
                                 <label for="create_cp" class="form-label">Código Postal</label>
                                 <input type="text" class="form-control" id="create_cp" name="cp" placeholder="97300" maxlength="5" required>
                             </div>
                         </div>
-
                         {{-- Contacto --}}
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
@@ -425,4 +435,191 @@
         border-bottom: 1px solid #533f03;
         text-decoration: none;
     }
+    .select2-container--default .select2-selection--single {
+    height: 38px !important;
+    }
 </style>
+
+{{-- Script para el modal de creación --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const createEstadoSelect = document.getElementById('create_estado_viv_id');
+    const createMunicipioSelect = document.getElementById('create_municipio_id');
+    const createLocalidadInput = document.getElementById('create_localidad_input');
+    const createLocalidadSelect = document.getElementById('create_localidad_select');
+    const createLocalidadHint = document.getElementById('create_localidad_hint');
+    const todosMunicipios = @json($municipios);
+    
+    // Municipios que tienen localidades (del 2294 al 2399)
+    const municipiosConLocalidades = Array.from({length: 106}, (_, i) => 2294 + i);
+
+    $('#createBeneficiarioModal').on('shown.bs.modal', function() {
+        
+        // Inicializar Select2 para municipio
+        $(createMunicipioSelect).select2({
+            placeholder: "Seleccione o busque un municipio",
+            allowClear: true,
+            language: "es",
+            width: '100%',
+            dropdownParent: $('#createBeneficiarioModal')
+        });
+
+        // Inicializar Select2 para estado
+        $(createEstadoSelect).select2({
+            placeholder: "Seleccione un estado",
+            allowClear: false,
+            language: "es",
+            width: '100%',
+            dropdownParent: $('#createBeneficiarioModal')
+        });
+
+        // Inicializar Select2 para localidad
+        $(createLocalidadSelect).select2({
+            placeholder: "Busque o seleccione una localidad",
+            allowClear: true,
+            language: "es",
+            width: '100%',
+            dropdownParent: $('#createBeneficiarioModal')
+        });
+
+        const estadoDefault = '31';
+        filtrarMunicipiosCreacion(estadoDefault);
+        
+        // Inicializar modo localidad con el municipio por defecto (Mérida)
+        toggleModoLocalidadCreacion('2343');
+    });
+
+    function filtrarMunicipiosCreacion(estadoId, municipioSeleccionado = null) {
+
+        if (!estadoId) {
+            $(createMunicipioSelect).empty().append('<option value="">Seleccione un estado primero</option>');
+            $(createMunicipioSelect).prop('disabled', true);
+            $(createMunicipioSelect).trigger('change');
+            return;
+        }
+
+        const municipiosFiltrados = todosMunicipios.filter(m => m.estado_id == estadoId);
+        const seleccionActual = $(createMunicipioSelect).val();
+
+        $(createMunicipioSelect).empty().append('<option value="">Seleccionar municipio...</option>');
+
+        municipiosFiltrados.forEach(municipio => {
+            const option = new Option(municipio.descripcion, municipio.id, false, false);
+            $(createMunicipioSelect).append(option);
+        });
+
+        $(createMunicipioSelect).prop('disabled', false);
+
+        if (estadoId === '31' && !municipioSeleccionado) {
+            const meridaId = '2343';
+            if (municipiosFiltrados.some(m => m.id == meridaId)) {
+                $(createMunicipioSelect).val(meridaId).trigger('change');
+            }
+        } else if (municipioSeleccionado && municipiosFiltrados.some(m => m.id == municipioSeleccionado)) {
+            $(createMunicipioSelect).val(municipioSeleccionado).trigger('change');
+        } else {
+            $(createMunicipioSelect).val('').trigger('change');
+        }
+    }
+
+    function toggleModoLocalidadCreacion(municipioId) {
+        const tieneLocalidades = municipiosConLocalidades.includes(parseInt(municipioId));
+        
+        
+        if (tieneLocalidades) {
+            createLocalidadInput.classList.add('d-none');
+            createLocalidadInput.readOnly = true;
+            createLocalidadSelect.classList.remove('d-none');
+            createLocalidadSelect.disabled = false;
+            createLocalidadHint.textContent = 'Seleccione una localidad de la lista';
+            
+            cargarLocalidadesCreacion(municipioId);
+        } else {
+            createLocalidadInput.classList.remove('d-none');
+            createLocalidadInput.readOnly = false;
+            createLocalidadSelect.classList.add('d-none');
+            createLocalidadSelect.disabled = true;
+            createLocalidadHint.textContent = 'Escriba el nombre de la localidad';
+            
+            // Transferir valor si es necesario
+            if (createLocalidadSelect.value && !createLocalidadInput.value) {
+                createLocalidadInput.value = $(createLocalidadSelect).select2('data')[0]?.text || '';
+            }
+            
+            // Enfocar el input automáticamente
+            setTimeout(() => {
+                createLocalidadInput.focus();
+            }, 100);
+        }
+    }
+
+    function cargarLocalidadesCreacion(municipioId) {
+        
+        if (!municipioId) {
+            $(createLocalidadSelect).empty().append('<option value="">Seleccione un municipio primero</option>');
+            $(createLocalidadSelect).prop('disabled', true).trigger('change');
+            return;
+        }
+        
+        fetch(`/api/municipios/${municipioId}/localidades`)
+            .then(response => response.json())
+            .then(localidades => {
+                
+                $(createLocalidadSelect).empty().append('<option value="">Seleccione una localidad</option>');
+                
+                localidades.forEach(localidad => {
+                    const option = new Option(
+                        localidad.nom_loc, 
+                        localidad.nom_loc, 
+                        false, 
+                        false
+                    );
+                    $(createLocalidadSelect).append(option);
+                });
+                
+                $(createLocalidadSelect).prop('disabled', false).trigger('change');
+            })
+            .catch(error => {
+                console.error('❌ Error cargando localidades (creación):', error);
+                $(createLocalidadSelect).empty().append('<option value="">Error cargando localidades</option>');
+            });
+    }
+
+    // Event listeners
+    $(createEstadoSelect).on('change', function() {
+        filtrarMunicipiosCreacion(this.value);
+    });
+
+    $(createMunicipioSelect).on('change', function() {
+        toggleModoLocalidadCreacion(this.value);
+    });
+
+    createLocalidadInput.addEventListener('input', function() {
+        createLocalidadSelect.value = this.value;
+    });
+
+    $(createLocalidadSelect).on('change', function() {
+    });
+
+    document.getElementById('createBeneficiarioForm').addEventListener('submit', function() {
+        
+        if (!createLocalidadSelect.classList.contains('d-none')) {
+            createLocalidadInput.value = createLocalidadSelect.value;
+        }
+    });
+
+    $('#createBeneficiarioModal').on('hidden.bs.modal', function() {
+        $(createMunicipioSelect).select2('destroy');
+        $(createEstadoSelect).select2('destroy');
+        $(createLocalidadSelect).select2('destroy');
+        
+        createLocalidadInput.classList.remove('d-none');
+        createLocalidadInput.readOnly = false;
+        createLocalidadSelect.classList.add('d-none');
+        createLocalidadSelect.disabled = true;
+        createLocalidadInput.value = '';
+        createLocalidadSelect.value = '';
+        createLocalidadHint.textContent = 'Escriba el nombre de la localidad';
+    });
+});
+</script>

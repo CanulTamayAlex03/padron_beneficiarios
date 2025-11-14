@@ -207,7 +207,6 @@
         console.log('Funciones de validación configuradas correctamente');
     });
 
-    // El resto del código (edad, municipios, etc.) se mantiene igual
     document.addEventListener('DOMContentLoaded', function() {
         const fechaNacInput = document.getElementById('create_fecha_nac');
         const edadInput = document.getElementById('create_edad');
@@ -238,76 +237,4 @@
         }
     });
 
-    document.addEventListener('DOMContentLoaded', function() {
-        const estadoVivSelect = document.getElementById('create_estado_viv_id');
-        const municipioSelect = document.getElementById('create_municipio_id');
-        const municipioOptions = Array.from(municipioSelect.options);
-
-        function filterMunicipiosByEstado(estadoId) {
-            if (!estadoId) {
-                municipioOptions.forEach(option => {
-                    option.style.display = '';
-                });
-                municipioSelect.value = '';
-                return;
-            }
-
-            municipioOptions.forEach(option => {
-                if (option.value === '' || option.getAttribute('data-estado') === estadoId) {
-                    option.style.display = '';
-                } else {
-                    option.style.display = 'none';
-                }
-            });
-
-            const selectedOption = municipioSelect.options[municipioSelect.selectedIndex];
-            if (selectedOption && selectedOption.getAttribute('data-estado') !== estadoId && selectedOption.value !== '') {
-                municipioSelect.value = '';
-            }
-        }
-
-        estadoVivSelect.addEventListener('change', function() {
-            filterMunicipiosByEstado(this.value);
-        });
-
-        filterMunicipiosByEstado(estadoVivSelect.value);
-    });
-
-    document.addEventListener('DOMContentLoaded', function() {
-        const editEstadoVivSelect = document.getElementById('edit_estado_viv_id');
-        const editMunicipioSelect = document.getElementById('edit_municipio_id');
-
-        if (editEstadoVivSelect && editMunicipioSelect) {
-            editEstadoVivSelect.addEventListener('change', function() {
-                filterEditMunicipiosByEstado(this.value);
-            });
-        }
-
-        window.filterEditMunicipiosByEstado = function(estadoId) {
-            if (!editMunicipioSelect) return;
-
-            const editMunicipioOptions = Array.from(editMunicipioSelect.options);
-
-            if (!estadoId) {
-                editMunicipioOptions.forEach(option => {
-                    option.style.display = '';
-                });
-                editMunicipioSelect.value = '';
-                return;
-            }
-
-            editMunicipioOptions.forEach(option => {
-                if (option.value === '' || option.getAttribute('data-estado') === estadoId) {
-                    option.style.display = '';
-                } else {
-                    option.style.display = 'none';
-                }
-            });
-
-            const selectedOption = editMunicipioSelect.options[editMunicipioSelect.selectedIndex];
-            if (selectedOption && selectedOption.getAttribute('data-estado') !== estadoId && selectedOption.value !== '') {
-                editMunicipioSelect.value = '';
-            }
-        };
-    });
 </script>

@@ -37,17 +37,45 @@
                 <div class="card-body">
                     <div class="row mb-4">
                         <div class="col-md-8">
-                            <form action="{{ route('beneficiarios') }}" method="GET" class="d-flex">
-                                <div class="input-group">
-                                    <input type="text" name="curp" class="form-control" placeholder="Buscar por CURP..." value="{{ request('curp') }}">
-                                    <button class="btn btn-outline-secondary" type="submit">
-                                        <i class="bi bi-search"></i> Buscar
-                                    </button>
-                                    <a href="{{ route('beneficiarios') }}" class="btn btn-outline-danger">
-                                        <i class="bi bi-x-circle"></i> Limpiar
-                                    </a>
-                                </div>
-                            </form>
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#searchBeneficiarioModal">
+                                <i class="bi bi-search"></i> Búsqueda Avanzada
+                            </button>
+
+                            @if(request()->hasAny(['nombre_completo', 'curp', 'programa_id', 'tipo_programa_id', 'con_estudios', 'exact_match']))
+                            <div class="mt-2">
+                                <span class="badge bg-success">Filtros activos:</span>
+                                @if(request('nombre_completo'))
+                                <span class="badge bg-secondary">Nombre: {{ request('nombre_completo') }}</span>
+                                @endif
+                                @if(request('curp'))
+                                <span class="badge bg-secondary">CURP: {{ request('curp') }}</span>
+                                @endif
+                                @if(request('programa_id'))
+                                @php
+                                $programaFiltro = $programas->firstWhere('id', request('programa_id'));
+                                @endphp
+                                <span class="badge bg-secondary">Programa: {{ $programaFiltro->nombre_programa ?? 'N/A' }}</span>
+                                @endif
+                                @if(request('tipo_programa_id') && request('programa_id'))
+                                @php
+                                $programaFiltro = $programas->firstWhere('id', request('programa_id'));
+                                $tipoFiltro = $programaFiltro ? $programaFiltro->tiposPrograma->firstWhere('id', request('tipo_programa_id')) : null;
+                                @endphp
+                                <span class="badge bg-secondary">Tipo: {{ $tipoFiltro->nombre_tipo_programa ?? 'N/A' }}</span>
+                                @endif
+                                @if(request('con_estudios') === '1')
+                                <span class="badge bg-secondary">Con estudios</span>
+                                @elseif(request('con_estudios') === '0')
+                                <span class="badge bg-secondary">Sin estudios</span>
+                                @endif
+                                @if(request('exact_match'))
+                                <span class="badge bg-dark">Búsqueda exacta</span>
+                                @endif
+                                <a href="{{ route('beneficiarios') }}" class="btn btn-sm btn-outline-danger ms-2">
+                                    <i class="bi bi-x-circle"></i> Limpiar
+                                </a>
+                            </div>
+                            @endif
                         </div>
                         <div class="col-md-4 text-end">
                             <span class="badge bg-dark">Total: {{ $beneficiarios->total() }} registros</span>
@@ -88,11 +116,17 @@
                                 @php
                                 $cantidadEstudios = $beneficiario->estudiosSocioeconomicos->count();
 
-                                $tieneEstudiosCompletos = $beneficiario->estudiosSocioeconomicos
-                                ->whereNotNull('res_estudio_1')
-                                ->whereNotNull('res_estudio_2')
-                                ->whereNotNull('res_estudio_3')
-                                ->count() > 0;
+                                // El estudio se considera completo si:
+                                // - res_estudio_1, 2 y 3 NO son nulos
+                                // - y además NINGUNO tiene el valor "No aplica"
+                                $tieneEstudiosCompletos = $beneficiario->estudiosSocioeconomicos->contains(function ($estudio) {
+                                return !is_null($estudio->res_estudio_1)
+                                && !is_null($estudio->res_estudio_2)
+                                && !is_null($estudio->res_estudio_3)
+                                && $estudio->res_estudio_1 !== 'No aplica'
+                                && $estudio->res_estudio_2 !== 'No aplica'
+                                && $estudio->res_estudio_3 !== 'No aplica';
+                                });
 
                                 if ($cantidadEstudios > 0) {
                                 $rutaEdicion = route('beneficiarios.estudios.editar', [$beneficiario->id, $beneficiario->estudiosSocioeconomicos->first()->id]);
@@ -104,6 +138,7 @@
                                 $badge = '';
                                 }
                                 @endphp
+
                                 <tr>
                                     <td>{{ $beneficiario->id }}</td>
 
@@ -273,6 +308,7 @@
 @include('modals.create-beneficiario')
 @include('modals.edit-beneficiario')
 @include('modals.delete-beneficiario')
+@include('modals.search-beneficiario')
 @include('modals.resultados-estudios')
 @include('modals.select-estudio')
 
@@ -378,5 +414,56 @@
 @include('scripts.beneficiarios-modals')
 @include('scripts.resultados-estudios')
 @include('scripts.select-estudios')
+
+<!--
+@if(session('abrir_resultados'))
+<script>
+(function() {
+    const beneficiarioId = "{{ session('abrir_resultados') }}";
+    console.log("Intentando abrir modal automáticamente para beneficiario:", beneficiarioId);
+
+    // Función que abrirá el modal si el botón aún no está disponible
+    async function abrirModalAutomatico(id) {
+        try {
+            const res = await fetch(`/beneficiarios/${id}/resultados`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+
+            const html = await res.text();
+            const cont = document.getElementById('contenidoResultados');
+            if (!cont) return console.warn('No existe #contenidoResultados en el DOM');
+            cont.innerHTML = html;
+
+            const modalEl = document.getElementById('resultadosEstudiosModal');
+            if (!modalEl) return console.warn(' No existe #resultadosEstudiosModal');
+            const modal = new bootstrap.Modal(modalEl);
+            modal.show();
+
+            console.log('Modal abierto automáticamente');
+        } catch (err) {
+            console.error(' Error al abrir modal automáticamente:', err);
+        }
+    }
+
+    // Intentos repetidos hasta que aparezca el botón
+    let tries = 0;
+    const maxTries = 10;
+    const interval = setInterval(() => {
+        tries++;
+        const boton = document.querySelector(`.view-resultados-btn[data-beneficiario-id="${beneficiarioId}"]`);
+        if (boton) {
+            console.log('Botón encontrado, simulando clic');
+            boton.click(); // usa el mismo flujo que ya funciona
+            clearInterval(interval);
+        } else if (tries >= maxTries) {
+            console.warn('No se encontró el botón, cargando manualmente');
+            clearInterval(interval);
+            abrirModalAutomatico(beneficiarioId);
+        }
+    }, 500);
+})();
+</script>
+@endif -->
 
 @endsection

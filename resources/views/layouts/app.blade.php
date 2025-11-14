@@ -16,6 +16,7 @@
     <link rel="shortcut icon" href="{{ asset('images/buena-persona.png') }}" type="image/png">
     <link rel="icon" href="{{ asset('images/buena-persona.png') }}" type="image/png">
 
+    <link href="{{ asset('css/select2.min.css') }}" rel="stylesheet" />
 </head>
 
 <body>
@@ -78,6 +79,14 @@
             </li>
             @endcan
 
+            @can('ver lineas coneval')
+            <li class="nav-item mb-2">
+                <a class="nav-link text-white {{ request()->is('lineas-coneval*') ? 'active bg-secondary rounded' : '' }}" href="{{ route('lineas-coneval.index') }}">
+                    <i class="bi bi-graph-up me-2"></i>
+                    <span class="nav-link-text">Líneas CONEVAL</span>
+                </a>
+            </li>
+            @endcan
             <!--
             @can('ver areas')
             <li class="nav-item mb-2">
@@ -151,14 +160,12 @@
     </style>
 
     <!-- ========== JavaScripts ========== -->
-    <!-- jQuery -->
     <script src="{{ asset('js/jquery-3.6.0.min.js') }}"></script>
-
-    <!-- Bootstrap (bundle incluye Popper) -->
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
-
-    <!-- FINALMENTE tu app.js -->
     <script src="{{ mix('js/app.js') }}"></script>
+
+    <script src="{{ asset('js/select2.min.js') }}"></script>
+    <script src="{{ asset('js/es.js') }}"></script>
 
     @auth
     <script>

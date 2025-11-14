@@ -28,14 +28,12 @@ class AuthController extends Controller
             ])->withInput($request->only('email'));
         }
 
-        // Verificar si el usuario está inactivo
         if ($usuario->estatus != 1) {
             return back()->withErrors([
                 'email' => 'Su cuenta está inactiva. Contacte al administrador.',
             ])->withInput($request->only('email'));
         }
 
-        // Intentar autenticación
         if (Auth::guard('web')->attempt($credentials, $request->filled('remember'))) {
             $request->session()->regenerate();
             return redirect()->intended(route('beneficiarios'));

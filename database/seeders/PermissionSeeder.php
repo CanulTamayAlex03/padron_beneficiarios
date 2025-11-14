@@ -26,6 +26,11 @@ class PermissionSeeder extends Seeder
         Permission::create(['name' => 'importar beneficiarios', 'guard_name' => 'web']);
         Permission::create(['name' => 'exportar beneficiarios', 'guard_name' => 'web']);
 
+        // ================== PERMISOS PARA LÍNEAS CONEVAL ==================
+        Permission::create(['name' => 'ver lineas coneval', 'guard_name' => 'web']);
+        Permission::create(['name' => 'crear lineas coneval', 'guard_name' => 'web']);
+        Permission::create(['name' => 'editar lineas coneval', 'guard_name' => 'web']);
+
         // ================== PERMISOS PARA ÁREAS ==================
         Permission::create(['name' => 'ver areas', 'guard_name' => 'web']);
         Permission::create(['name' => 'crear areas', 'guard_name' => 'web']);
@@ -52,7 +57,7 @@ class PermissionSeeder extends Seeder
             'ver beneficiarios', 'crear beneficiarios', 'editar beneficiarios', 'eliminar beneficiarios', 
             'importar beneficiarios', 'exportar beneficiarios',
             'ver areas', 'crear areas', 'editar areas', 'eliminar areas',
-            'acceder panel administracion',
+            'acceder panel administracion', 
         ]);
 
         // user - Permisos básicos
@@ -67,6 +72,20 @@ class PermissionSeeder extends Seeder
         if ($usuarioSuperAdmin) {
             $usuarioSuperAdmin->assignRole('superadmin');
             $this->command->info("✅ SuperAdmin asignado a: " . $usuarioSuperAdmin->email);
+        }
+    }
+    
+    private function createPermissionIfNotExists($permissionName)
+    {
+        $permission = Permission::where('name', $permissionName)
+            ->where('guard_name', 'web')
+            ->first();
+
+        if (!$permission) {
+            Permission::create(['name' => $permissionName, 'guard_name' => 'web']);
+            $this->command->info("Permiso creado: " . $permissionName);
+        } else {
+            $this->command->info("ℹPermiso ya existe: " . $permissionName);
         }
     }
 }

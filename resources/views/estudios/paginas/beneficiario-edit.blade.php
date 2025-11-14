@@ -126,6 +126,7 @@
             <fieldset class="border rounded p-3 mb-3">
                 <legend class="float-none w-auto px-2"><strong>Características Especiales</strong></legend>
                 <div class="row g-3">
+                    <!--
                     <div class="col-md-3 col-6"> {{-- 4 columnas --}}
                         <input type="hidden" name="discapacidad" value="0">
                         <div class="form-check">
@@ -142,6 +143,7 @@
                             <label class="form-check-label" for="edit_indigena">Indígena</label>
                         </div>
                     </div>
+                    -->
                     <div class="col-md-3 col-6"> {{-- 4 columnas --}}
                         <input type="hidden" name="maya_hablante" value="0">
                         <div class="form-check">
@@ -243,20 +245,32 @@
                     </div>
                     <div class="col-md-4"> {{-- Municipio --}}
                         <label for="edit_municipio_id" class="form-label">Municipio</label>
-                        <select class="form-select" id="edit_municipio_id" name="municipio_id">
-                            <option value="" disabled>Seleccione un municipio</option>
+                        <select class="form-select select2-municipio" id="edit_municipio_id" name="municipio_id">
+                        <option value="" disabled>Seleccione un municipio</option>
                             @foreach($municipios as $municipio)
-                            <option value="{{ $municipio->id }}" data-estado="{{ $municipio->estado_id }}"
-                                {{ old('municipio_id', $beneficiario->municipio_id) == $municipio->id ? 'selected' : '' }}>
-                                {{ $municipio->descripcion }}
-                            </option>
-                            @endforeach
+                        <option value="{{ $municipio->id }}" data-estado="{{ $municipio->estado_id }}"
+                            {{ old('municipio_id', $beneficiario->municipio_id) == $municipio->id ? 'selected' : '' }}>
+                            {{ $municipio->descripcion }}
+                        </option>
+                        @endforeach
                         </select>
                     </div>
-                    <div class="col-md-4"> {{-- Localidad --}}
+                    {{-- Localidad --}}
+                    <div class="col-md-4">
                         <label for="edit_localidad" class="form-label">Localidad</label>
-                        <input type="text" class="form-control" id="edit_localidad" name="localidad"
-                            placeholder="Nombre de la localidad" value="{{ old('localidad', $beneficiario->localidad) }}">
+
+                        {{-- Input normal (por defecto) --}}
+                        <input type="text" class="form-control" id="edit_localidad_input" name="localidad"
+                            placeholder="Nombre de la localidad" 
+                            value="{{ old('localidad', $beneficiario->localidad) }}">
+
+                        {{-- Select2 para municipios con localidades --}}
+                        <select class="form-control d-none" id="edit_localidad_select" name="localidad">
+                            <option value="">Seleccione una localidad</option>
+                        </select>
+                        <div class="form-text">
+                            <span id="localidad_hint">Escriba el nombre de la localidad</span>
+                        </div>
                     </div>
                 </div>
 
@@ -285,7 +299,7 @@
     </div>
 </div>
 <style>
-    #edit_curp{
+#edit_curp{
     text-transform: uppercase;
     }
     .uppercase-no-tildes {
@@ -294,6 +308,9 @@
 
 #edit_nombres, #edit_primer_apellido, #edit_segundo_apellido {
     text-transform: uppercase;
+}
+.select2-container--default .select2-selection--single {
+    height: 38px !important; 
 }
 </style>
 <script>
@@ -344,49 +361,214 @@
     });
 
     document.addEventListener('DOMContentLoaded', function() {
-        const estadoSelect = document.getElementById('edit_estado_viv_id');
-        const municipioSelect = document.getElementById('edit_municipio_id');
+    const estadoSelect = document.getElementById('edit_estado_viv_id');
+    const municipioSelect = document.getElementById('edit_municipio_id');
+    const todosMunicipios = @json($municipios);
 
-        // Cargar todos los municipios al inicio (pasados desde el controlador)
-        const todosMunicipios = @json($municipios);
-
-        function filtrarMunicipios(estadoId, municipioSeleccionado = null) {
-            console.log('Filtrando municipios para estado:', estadoId);
-
-            if (!estadoId) {
-                municipioSelect.innerHTML = '<option value="">Seleccione un estado primero</option>';
-                municipioSelect.disabled = true;
-                return;
-            }
-
-            const municipiosFiltrados = todosMunicipios.filter(m => m.estado_id == estadoId);
-
-            municipioSelect.innerHTML = '<option value="">Seleccionar municipio...</option>';
-
-            municipiosFiltrados.forEach(municipio => {
-                const option = document.createElement('option');
-                option.value = municipio.id;
-                option.textContent = municipio.descripcion;
-
-                if (municipioSeleccionado && parseInt(municipioSeleccionado) === parseInt(municipio.id)) {
-                    option.selected = true;
-                }
-
-                municipioSelect.appendChild(option);
-            });
-
-            municipioSelect.disabled = false;
-        }
-
-        const estadoActual = '{{ $beneficiario->estado_viv_id }}';
-        const municipioActual = '{{ $beneficiario->municipio_id }}';
-
-        if (estadoActual) {
-            filtrarMunicipios(estadoActual, municipioActual);
-        }
-
-        estadoSelect.addEventListener('change', function() {
-            filtrarMunicipios(this.value);
-        });
+    // Inicializar Select2 en el municipio
+    $(municipioSelect).select2({
+        placeholder: "Seleccione o busque un municipio",
+        allowClear: true,
+        language: "es",
+        width: '100%'
     });
+
+    function filtrarMunicipios(estadoId, municipioSeleccionado = null) {
+        console.log('Filtrando municipios para estado:', estadoId);
+
+        if (!estadoId) {
+            // Deshabilitar y limpiar si no hay estado
+            $(municipioSelect).empty().append('<option value="">Seleccione un estado primero</option>');
+            $(municipioSelect).prop('disabled', true);
+            $(municipioSelect).trigger('change');
+            return;
+        }
+
+        const municipiosFiltrados = todosMunicipios.filter(m => m.estado_id == estadoId);
+
+        // Guardar la selección actual antes de limpiar
+        const seleccionActual = $(municipioSelect).val();
+
+        $(municipioSelect).empty().append('<option value="">Seleccionar municipio...</option>');
+
+        municipiosFiltrados.forEach(municipio => {
+            const option = new Option(municipio.descripcion, municipio.id, false, false);
+            $(municipioSelect).append(option);
+        });
+
+        $(municipioSelect).prop('disabled', false);
+
+        // Restaurar selección si corresponde al estado actual
+        if (municipioSeleccionado && municipiosFiltrados.some(m => m.id == municipioSeleccionado)) {
+            $(municipioSelect).val(municipioSeleccionado).trigger('change');
+        } else if (seleccionActual && municipiosFiltrados.some(m => m.id == seleccionActual)) {
+            $(municipioSelect).val(seleccionActual).trigger('change');
+        } else {
+            $(municipioSelect).val('').trigger('change');
+        }
+    }
+
+    // Inicializar con el estado actual
+    const estadoActual = '{{ $beneficiario->estado_viv_id }}';
+    const municipioActual = '{{ $beneficiario->municipio_id }}';
+
+    if (estadoActual) {
+        filtrarMunicipios(estadoActual, municipioActual);
+    } else {
+        $(municipioSelect).prop('disabled', true);
+    }
+
+    // Event listener para cambios en el estado
+    $(estadoSelect).on('change', function() {
+    filtrarMunicipios(this.value);
+    });
+
+    // También podrías agregar Select2 al estado si quieres
+    $(estadoSelect).select2({
+        placeholder: "Seleccione un estado",
+        allowClear: false,
+        language: "es",
+        width: '100%'
+    });
+});
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    const municipioSelect = document.getElementById('edit_municipio_id');
+    const localidadInput = document.getElementById('edit_localidad_input');
+    const localidadSelect = document.getElementById('edit_localidad_select');
+    const localidadHint = document.getElementById('localidad_hint');
+    
+    // Municipios que tienen localidades (del 2294 al 2399)
+    const municipiosConLocalidades = Array.from({length: 106}, (_, i) => 2294 + i);
+    
+    // Inicializar Select2 para el select de localidades
+    $(localidadSelect).select2({
+        placeholder: "Busque o seleccione una localidad",
+        allowClear: true,
+        language: "es",
+        width: '100%'
+    });
+    
+    function toggleModoLocalidad(municipioId) {
+        const tieneLocalidades = municipiosConLocalidades.includes(parseInt(municipioId));
+        const valorActual = '{{ old("localidad", $beneficiario->localidad) }}';
+        
+        console.log('toggleModoLocalidad:', {
+            municipioId,
+            tieneLocalidades,
+            valorActual
+        });
+        
+        if (tieneLocalidades) {
+            // Modo SELECT2 - Ocultar input, mostrar select
+            localidadInput.classList.add('d-none');
+            localidadInput.readOnly = true; // ← CAMBIADO: readOnly en lugar de disabled
+            localidadSelect.classList.remove('d-none');
+            localidadSelect.disabled = false;
+            localidadHint.textContent = 'Seleccione una localidad de la lista';
+            
+            // Cargar localidades para este municipio
+            cargarLocalidades(municipioId, valorActual);
+        } else {
+            // Modo INPUT - Ocultar select, mostrar input
+            localidadInput.classList.remove('d-none');
+            localidadInput.readOnly = false; // ← CAMBIADO: readOnly en lugar de disabled
+            localidadSelect.classList.add('d-none');
+            localidadSelect.disabled = true;
+            localidadHint.textContent = 'Escriba el nombre de la localidad';
+            
+            // Si veníamos del modo select, transferir el valor
+            if (localidadSelect.value && !localidadInput.value) {
+                localidadInput.value = $(localidadSelect).select2('data')[0]?.text || '';
+                console.log('Valor transferido del select al input:', localidadInput.value);
+            }
+        }
+    }
+    
+    function cargarLocalidades(municipioId, valorActual = '') {
+        console.log('cargarLocalidades:', { municipioId, valorActual });
+        
+        if (!municipioId) {
+            $(localidadSelect).empty().append('<option value="">Seleccione un municipio primero</option>');
+            $(localidadSelect).prop('disabled', true).trigger('change');
+            return;
+        }
+        
+        fetch(`/api/municipios/${municipioId}/localidades`)
+            .then(response => response.json())
+            .then(localidades => {
+                console.log('Localidades cargadas:', localidades);
+                
+                $(localidadSelect).empty().append('<option value="">Seleccione una localidad</option>');
+                
+                localidades.forEach(localidad => {
+                    const selected = localidad.nom_loc === valorActual;
+                    const option = new Option(
+                        localidad.nom_loc, 
+                        localidad.nom_loc, 
+                        selected, 
+                        selected
+                    );
+                    $(localidadSelect).append(option);
+                });
+                
+                $(localidadSelect).prop('disabled', false).trigger('change');
+                console.log('Select actualizado con valor:', $(localidadSelect).val());
+                
+                if (valorActual && !localidades.some(l => l.nom_loc === valorActual)) {
+                    const option = new Option(valorActual, valorActual, true, true);
+                    $(localidadSelect).append(option).trigger('change');
+                    console.log('Opción personalizada agregada:', valorActual);
+                }
+            })
+            .catch(error => {
+                console.error('Error cargando localidades:', error);
+                $(localidadSelect).empty().append('<option value="">Error cargando localidades</option>');
+            });
+    }
+    
+    // Event listeners
+    $(municipioSelect).on('change', function() {
+        console.log('Municipio cambió a:', this.value);
+        toggleModoLocalidad(this.value);
+    });
+    
+    // Sincronización
+    $(localidadSelect).on('change', function() {
+        console.log('Select cambió a:', this.value);
+    });
+    
+    localidadInput.addEventListener('input', function() {
+        console.log('Input cambió a:', this.value);
+        if (localidadSelect.value !== this.value) {
+            localidadSelect.value = this.value;
+            $(localidadSelect).trigger('change');
+        }
+    });
+    
+    // Inicializar con el municipio actual
+    const municipioActual = '{{ $beneficiario->municipio_id }}';
+    console.log('Municipio actual:', municipioActual);
+    if (municipioActual) {
+        toggleModoLocalidad(municipioActual);
+    }
+    
+    // Sincronización final antes de enviar
+    document.getElementById('editBeneficiarioForm').addEventListener('submit', function() {
+        console.log('🔴 FORMULARIO ENVIÁNDOSE - Estado localidad:', {
+            inputVisible: !localidadInput.classList.contains('d-none'),
+            selectVisible: !localidadSelect.classList.contains('d-none'),
+            inputValue: localidadInput.value,
+            selectValue: localidadSelect.value,
+            inputReadOnly: localidadInput.readOnly
+        });
+        
+        if (!localidadSelect.classList.contains('d-none')) {
+            // Si el select está visible, usar su valor
+            localidadInput.value = localidadSelect.value;
+            console.log('✅ Sincronización final - Input actualizado a:', localidadInput.value);
+        }
+    });
+});
 </script>

@@ -335,34 +335,90 @@
 </div>
 @endcan
 
-<!-- Modal de Confirmación para Estudio Socioeconómico -->
+<!-- Modal de Opciones para Estudio Socioeconómico -->
 <div class="modal fade" id="estudioSocioeconomicoModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-md">
         <div class="modal-content shadow-lg">
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title">
-                    <i class="bi bi-clipboard-check me-2"></i> Estudio Socioeconómico
+                    <i class="bi bi-clipboard-check me-2"></i> Opciones de Estudio
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
+            
             <div class="modal-body text-center">
-                <div class="mb-4">
-                    <i class="bi bi-question-circle display-4 text-info"></i>
+                <!-- Información del beneficiario -->
+                <div class="alert alert-info mb-4">
+                    <i class="bi bi-person-check me-2"></i>
+                    <strong id="beneficiario-info"></strong>
                 </div>
-                <h5 class="mb-3">¿Desea realizar el estudio socioeconómico a este beneficiario?</h5>
-                <p class="text-muted">Puede realizarlo ahora o más tarde desde la lista de beneficiarios.</p>
 
-                <div class="mt-4">
-                    <p id="beneficiario-info" class="fw-bold"></p>
+                <h6 class="mb-4">¿Qué desea hacer con este beneficiario?</h6>
+
+                <div class="row g-3 mb-4">
+                    <!-- Opción 1: Crear Nuevo -->
+                    <div class="col-6">
+                        <div class="card h-100 border-primary option-card" data-option="nuevo" style="cursor: pointer;">
+                            <div class="card-body text-center p-3">
+                                <div class="mb-2">
+                                    <i class="bi bi-plus-circle display-5 text-primary"></i>
+                                </div>
+                                <h6 class="card-title mb-1">Crear Nuevo</h6>
+                                <p class="card-text small text-muted mb-0">
+                                    Estudio desde cero
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Opción 2: Vincular Existente -->
+                    <div class="col-6">
+                        <div class="card h-100 border-success option-card" data-option="vincular" style="cursor: pointer;">
+                            <div class="card-body text-center p-3">
+                                <div class="mb-2">
+                                    <i class="bi bi-link display-5 text-success"></i>
+                                </div>
+                                <h6 class="card-title mb-1">Vincular</h6>
+                                <p class="card-text small text-muted mb-0">
+                                    Usar estudio existente
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección para vincular estudio (se muestra al seleccionar "Vincular") -->
+                <div id="seleccion-estudio-container" class="d-none">
+                    <div class="card border-success">
+                        <div class="card-body p-3">
+                            <h6 class="mb-3">
+                                <i class="bi bi-search me-2"></i> Seleccionar estudio
+                            </h6>
+                            <div class="mb-3">
+                                <select class="form-select form-select-sm" id="select-estudio-existente">
+                                    <option value="">Cargando estudios...</option>
+                                </select>
+                            </div>
+                            <div id="info-estudio-seleccionado" class="p-2 bg-light rounded d-none">
+                                <small class="text-muted" id="detalles-estudio"></small>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="modal-footer justify-content-center">
+            
+            <div class="modal-footer justify-content-between">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="bi bi-x-circle"></i> En otro momento
+                    <i class="bi bi-x-circle"></i> Cancelar
                 </button>
-                <button type="button" class="btn btn-primary" id="btn-iniciar-estudio">
-                    <i class="bi bi-check-circle"></i> Realizar Estudio
+                
+                <button type="button" class="btn btn-success d-none" id="btn-confirmar-vinculacion" disabled>
+                    <i class="bi bi-link-45deg"></i> Confirmar Vinculación
                 </button>
+                <button type="button" class="btn btn-primary d-none" id="btn-crear-estudio">
+                    <i class="bi bi-plus-circle"></i> Crear Estudio
+                </button>
+                
             </div>
         </div>
     </div>
@@ -438,6 +494,20 @@
     .select2-container--default .select2-selection--single {
     height: 38px !important;
     }
+
+    .option-card {
+    transition: all 0.2s ease;
+    }
+    .option-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .option-card.selected {
+        border-width: 2px;
+        background-color: rgba(13, 110, 253, 0.05);
+    }
+
+    
 </style>
 
 {{-- Script para el modal de creación --}}
@@ -584,8 +654,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 $(createLocalidadSelect).empty().append('<option value="">Error cargando localidades</option>');
             });
     }
-
-    // Event listeners
     $(createEstadoSelect).on('change', function() {
         filtrarMunicipiosCreacion(this.value);
     });
@@ -622,4 +690,6 @@ document.addEventListener('DOMContentLoaded', function() {
         createLocalidadHint.textContent = 'Escriba el nombre de la localidad';
     });
 });
+
 </script>
+@include('scripts.beneficiarios-vinculados-modal')

@@ -14,10 +14,12 @@
             <input type="hidden" name="estudio_actual" value="{{ $estudio->id }}">
             @endif
 
-            {{-- Contenedor para errores generales --}}
+            @if(isset($esVinculado) && $esVinculado)
+            <input type="hidden" name="es_vinculado" value="true">
+            @endif
+
+
             <div id="modal-edit-error" class="alert alert-danger d-none mb-3"></div>
-
-
 
             {{-- Datos Personales y CURP (Optimizado a 4 columnas) --}}
             <fieldset class="border rounded p-3 mb-3">

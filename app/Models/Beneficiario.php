@@ -88,4 +88,23 @@ class Beneficiario extends Model
     {
         return $this->hasMany(BeneficiarioFamiliar::class, 'beneficiario_id');
     }
+
+
+    public function estudiosVinculados()
+    {
+        return $this->hasMany(BeneficiarioEstudioVinculado::class, 'beneficiario_vinculado_id');
+    }
+
+    public function estudiosComoPrincipal()
+    {
+        return $this->hasMany(BeneficiarioEstudioVinculado::class, 'beneficiario_principal_id');
+    }
+
+    public function todosEstudios()
+    {
+        $propios = $this->estudiosSocioeconomicos;
+        $vinculados = $this->estudiosVinculados->map->estudio;
+
+        return $propios->merge($vinculados);
+    }
 }

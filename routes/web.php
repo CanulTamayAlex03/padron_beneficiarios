@@ -10,6 +10,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\EstudioSocioeconomicoController;
 use App\Http\Controllers\IntegranteHogarController;
 use App\Http\Controllers\LineaConevalController;
+use App\Http\Controllers\VinculacionEstudioController;
 
 // ================== LOGIN / LOGOUT ==================
 Route::get('/', [AuthController::class, 'showLoginForm'])->name('login');
@@ -77,6 +78,46 @@ Route::middleware('auth')->group(function () {
 
     Route::post('estudios/{estudio}/update-coneval', [EstudioSocioeconomicoController::class, 'updateConeval'])
         ->name('estudios.update-coneval');
+
+    // ================== VINCULACIONES DE ESTUDIOS ==================
+    Route::middleware('permission:ver vinculaciones estudios')->group(function () {
+        Route::get(
+            '/beneficiarios/{beneficiarioPrincipal}/estudios/{estudio}/vincular',
+            [EstudioSocioeconomicoController::class, 'vincularBeneficiarios']
+        )
+            ->name('beneficiarios.estudios.vincular');
+            
+        Route::get(
+            '/beneficiarios/{beneficiarioVinculado}/estudios-vinculados/{estudio}/editar',
+            [EstudioSocioeconomicoController::class, 'editarComoVinculado']
+        )
+            ->name('beneficiarios.estudios-vinculados.editar');
+
+        Route::get('/api/estudios/disponibles-para-vincular', [EstudioSocioeconomicoController::class, 'estudiosDisponiblesParaVincular'])
+            ->name('api.estudios.disponibles-vincular');
+
+        // Lista de vinculaciones
+        Route::prefix('vinculaciones-estudios')->group(function () {
+            Route::get('/', [VinculacionEstudioController::class, 'index'])->name('vinculaciones-estudios.index');
+        });
+    });
+
+    // Crear vinculaciones
+    Route::post(
+        '/beneficiarios/{beneficiarioPrincipal}/estudios/{estudio}/vincular',
+        [EstudioSocioeconomicoController::class, 'guardarVinculados']
+    )
+        ->middleware('permission:crear vinculaciones estudios')
+        ->name('beneficiarios.estudios.guardar-vinculados');
+
+    Route::post('/api/beneficiarios/{beneficiario}/vincular-estudio', [BeneficiarioController::class, 'vincularAEstudio'])
+        ->middleware('permission:crear vinculaciones estudios')
+        ->name('api.beneficiarios.vincular-estudio');
+
+    // Eliminar vinculaciones
+    Route::delete('/vinculaciones-estudios/{vinculacion}', [VinculacionEstudioController::class, 'destroy'])
+        ->middleware('permission:eliminar vinculaciones estudios')
+        ->name('vinculaciones-estudios.destroy');
 
     // ================== INTEGRANTES DEL HOGAR ==================
     Route::post('integrantes-hogar', [IntegranteHogarController::class, 'store'])

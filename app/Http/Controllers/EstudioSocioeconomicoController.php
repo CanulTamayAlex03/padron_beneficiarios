@@ -16,6 +16,7 @@ use App\Models\LineaConeval;
 use App\Models\ServicioSalud;
 use App\Models\Escolaridad;
 use App\Models\Parentesco;
+use App\Models\BeneficiarioEstudioVinculado;
 use Illuminate\Support\Facades\Log;
 
 class EstudioSocioeconomicoController extends Controller
@@ -555,5 +556,130 @@ class EstudioSocioeconomicoController extends Controller
             'estudio' => $estudio->load(['beneficiario.ocupacion']),
             'index' => $index
         ]);
+    }
+
+
+    public function vincularBeneficiarios(Beneficiario $beneficiarioPrincipal, EstudioSocioeconomico $estudio)
+    {
+        if ($estudio->beneficiario_id !== $beneficiarioPrincipal->id) {
+            abort(404, 'El estudio no pertenece a este beneficiario principal');
+        }
+
+        $beneficiariosVinculados = $estudio->beneficiariosVinculados;
+        $todosBeneficiarios = Beneficiario::where('id', '!=', $beneficiarioPrincipal->id)->get();
+
+        return view('estudios.vincular-beneficiarios', compact(
+            'beneficiarioPrincipal',
+            'estudio',
+            'beneficiariosVinculados',
+            'todosBeneficiarios'
+        ));
+    }
+
+    public function guardarVinculados(Request $request, Beneficiario $beneficiarioPrincipal, EstudioSocioeconomico $estudio)
+    {
+        $request->validate([
+            'beneficiarios_vinculados' => 'nullable|array',
+            'beneficiarios_vinculados.*' => 'exists:beneficiarios,id'
+        ]);
+        $estudio->beneficiariosVinculados()->delete();
+
+        if ($request->has('beneficiarios_vinculados')) {
+            foreach ($request->beneficiarios_vinculados as $beneficiarioId) {
+                BeneficiarioEstudioVinculado::create([
+                    'estudio_socioeconomico_id' => $estudio->id,
+                    'beneficiario_vinculado_id' => $beneficiarioId,
+                    'beneficiario_principal_id' => $beneficiarioPrincipal->id
+                ]);
+            }
+        }
+
+        return redirect()->route('beneficiarios.estudios.editar', [
+            'beneficiario' => $beneficiarioPrincipal->id,
+            'estudio' => $estudio->id
+        ])->with('success', 'Beneficiarios vinculados correctamente');
+    }
+
+    public function editarComoVinculado(Beneficiario $beneficiarioVinculado, EstudioSocioeconomico $estudio)
+    {
+        $vinculacion = BeneficiarioEstudioVinculado::where([
+            'estudio_socioeconomico_id' => $estudio->id,
+            'beneficiario_vinculado_id' => $beneficiarioVinculado->id
+        ])->first();
+
+        if (!$vinculacion) {
+            abort(404, 'No tienes acceso a este estudio');
+        }
+
+        $estudio->load([
+            'region',
+            'solicitud',
+            'programa',
+            'tipoPrograma',
+            'integrantesHogar.parentesco',
+            'beneficiario'
+        ]);
+
+        $beneficiarioPrincipal = $estudio->beneficiario;
+        $beneficiarioVinculado->load([
+            'estado',
+            'estadoViv',
+            'municipio',
+            'ocupacion',
+            'familiares.parentesco'
+        ]);
+
+        $ocupaciones = Ocupacion::where('activo', 1)->orderBy('ocupacion')->get();
+        $estados = Estado::orderBy('nombre')->get();
+        $municipios = Municipio::orderBy('descripcion')->get();
+        $parentescos = Parentesco::all();
+
+        return view('estudios.editar-como-vinculado', compact(
+            'beneficiarioVinculado',
+            'beneficiarioPrincipal',
+            'estudio',
+            'vinculacion',
+            'ocupaciones',
+            'estados',
+            'municipios',
+            'parentescos'
+        ));
+    }
+
+    public function estudiosDisponiblesParaVincular()
+    {
+        try {
+            Log::info('🔍 Iniciando estudiosDisponiblesParaVincular');
+
+           
+            $estudios = \App\Models\EstudioSocioeconomico::with('beneficiario')
+                ->where('id', '>', 0)
+                ->get()
+                ->map(function ($estudio) {
+                    return [
+                        'id' => $estudio->id,
+                        'folio' => $estudio->folio ?? 'EST-' . $estudio->id,
+                        'beneficiario_nombre' => $estudio->beneficiario ?
+                            $estudio->beneficiario->nombres . ' ' . $estudio->beneficiario->primer_apellido : 'Sin beneficiario',
+                        'fecha_creacion' => $estudio->created_at->format('d/m/Y'),
+                        'programa_nombre' => $estudio->programa ? $estudio->programa->nombre_programa : 'Sin programa'                    ];
+                });
+
+            Log::info('✅ Estudios encontrados: ' . $estudios->count());
+
+            return response()->json([
+                'success' => true,
+                'estudios' => $estudios
+            ]);
+        } catch (\Exception $e) {
+            Log::error('❌ Error en estudiosDisponiblesParaVincular: ' . $e->getMessage());
+            Log::error('❌ Stack trace: ' . $e->getTraceAsString());
+
+            return response()->json([
+                'success' => false,
+                'error' => 'Error interno: ' . $e->getMessage(),
+                'estudios' => []
+            ], 500);
+        }
     }
 }

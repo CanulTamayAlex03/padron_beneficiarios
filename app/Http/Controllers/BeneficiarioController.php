@@ -8,11 +8,13 @@ use App\Models\Estado;
 use App\Models\Municipio;
 use App\Models\Parentesco;
 use App\Models\Programa;
+use App\Models\BeneficiarioEstudioVinculado;
+use App\Models\EstudioSocioeconomico;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
-use App\Models\EstudioSocioeconomico;
 
 class BeneficiarioController extends Controller
 {
@@ -20,7 +22,7 @@ class BeneficiarioController extends Controller
     {
         $programas = Programa::with('tiposPrograma')->get();
 
-        $query = Beneficiario::query()->with(['estudiosSocioeconomicos', 'estado', 'ocupacion']);
+        $query = Beneficiario::query()->with(['estudiosSocioeconomicos.programa', 'estudiosVinculados.estudio.programa', 'estado', 'ocupacion']);
 
         if ($request->hasAny(['nombre_completo', 'curp', 'programa_id', 'tipo_programa_id', 'con_estudios'])) {
 
@@ -224,6 +226,13 @@ class BeneficiarioController extends Controller
                 'message' => 'Beneficiario actualizado correctamente.',
                 'data'    => $beneficiario
             ]);
+        }
+
+        if ($request->has('es_vinculado') && $request->has('estudio_actual')) {
+            return redirect()->route('beneficiarios.estudios-vinculados.editar', [
+                'beneficiarioVinculado' => $beneficiario->id,
+                'estudio' => $request->estudio_actual
+            ])->with('success', 'Beneficiario actualizado correctamente.');
         }
 
         if ($request->has('estudio_actual')) {
@@ -430,42 +439,117 @@ class BeneficiarioController extends Controller
     public function getEstudiosApi(Beneficiario $beneficiario)
     {
         try {
-            $estudios = $beneficiario->estudiosSocioeconomicos->map(function ($estudio) use ($beneficiario) {
-                return [
-                    'id' => $estudio->id,
-                    'folio' => $estudio->folio,
-                    'created_at' => $estudio->created_at,
-                    'res_estudio_1' => $estudio->res_estudio_1,
-                    'res_estudio_2' => $estudio->res_estudio_2,
-                    'res_estudio_3' => $estudio->res_estudio_3,
-                    'ruta_edicion' => route('beneficiarios.estudios.editar', [$beneficiario->id, $estudio->id])
-                ];
-            });
+            Log::info("=== INICIANDO API ESTUDIOS PARA BENEFICIARIO {$beneficiario->id} ===");
+
+            $estudiosPropios = DB::table('estudio_socioeconomico')
+                ->where('beneficiario_id', $beneficiario->id)
+                ->whereNull('deleted_at')
+                ->select([
+                    'id',
+                    'folio',
+                    'created_at',
+                    'res_estudio_1',
+                    'res_estudio_2',
+                    'res_estudio_3'
+                ])
+                ->get()
+                ->map(function ($estudio) use ($beneficiario) {
+                    return [
+                        'id' => $estudio->id,
+                        'folio' => $estudio->folio ?? 'N/A',
+                        'created_at' => $estudio->created_at,
+                        'res_estudio_1' => $estudio->res_estudio_1,
+                        'res_estudio_2' => $estudio->res_estudio_2,
+                        'res_estudio_3' => $estudio->res_estudio_3,
+                        'ruta_edicion' => route('beneficiarios.estudios.editar', [
+                            'beneficiario' => $beneficiario->id,
+                            'estudio' => $estudio->id
+                        ]),
+                        'tipo' => 'propio',
+                        'beneficiario_principal_nombre' => $beneficiario->nombres . ' ' . $beneficiario->primer_apellido
+                    ];
+                });
+
+            Log::info("Estudios propios encontrados: " . $estudiosPropios->count());
+
+            $estudiosVinculados = DB::table('beneficiario_estudio_vinculados as bev')
+                ->join('estudio_socioeconomico as es', 'bev.estudio_socioeconomico_id', '=', 'es.id')
+                ->join('beneficiarios as bp', 'bev.beneficiario_principal_id', '=', 'bp.id')
+                ->where('bev.beneficiario_vinculado_id', $beneficiario->id)
+                ->whereNull('es.deleted_at')
+                ->whereNull('bp.deleted_at')
+                ->select([
+                    'es.id as estudio_id',
+                    'es.folio',
+                    'es.created_at',
+                    'es.res_estudio_1',
+                    'es.res_estudio_2',
+                    'es.res_estudio_3',
+                    'bp.id as principal_id',
+                    'bp.nombres as principal_nombres',
+                    'bp.primer_apellido as principal_apellido'
+                ])
+                ->get()
+                ->map(function ($vinculo) use ($beneficiario) {
+                    return [
+                        'id' => $vinculo->estudio_id,
+                        'folio' => $vinculo->folio ?? 'N/A',
+                        'created_at' => $vinculo->created_at,
+                        'res_estudio_1' => $vinculo->res_estudio_1,
+                        'res_estudio_2' => $vinculo->res_estudio_2,
+                        'res_estudio_3' => $vinculo->res_estudio_3,
+                        'ruta_edicion' => route('beneficiarios.estudios-vinculados.editar', [
+                            'beneficiarioVinculado' => $beneficiario->id,
+                            'estudio' => $vinculo->estudio_id
+                        ]),
+                        'tipo' => 'vinculado',
+                        'beneficiario_principal_nombre' => $vinculo->principal_nombres . ' ' . $vinculo->principal_apellido,
+                        'beneficiario_principal_id' => $vinculo->principal_id
+                    ];
+                });
+
+            Log::info("Estudios vinculados encontrados: " . $estudiosVinculados->count());
+
+            $todosEstudios = $estudiosPropios->merge($estudiosVinculados);
+
+            Log::info("TOTAL estudios para beneficiario {$beneficiario->id}: " . $todosEstudios->count());
 
             return response()->json([
                 'beneficiario' => [
                     'id' => $beneficiario->id,
-                    'nombre' => $beneficiario->nombres . ' ' . $beneficiario->primer_apellido . ' ' . $beneficiario->segundo_apellido
+                    'nombre' => $beneficiario->nombres . ' ' . $beneficiario->primer_apellido . ' ' . $beneficiario->segundo_apellido,
+                    'estudios_propios' => $estudiosPropios->count(),
+                    'estudios_vinculados' => $estudiosVinculados->count(),
+                    'total_estudios' => $todosEstudios->count()
                 ],
-                'estudios' => $estudios
+                'estudios' => $todosEstudios
             ]);
         } catch (\Exception $e) {
+            Log::error('ERROR en getEstudiosApi: ' . $e->getMessage());
+            Log::error('File: ' . $e->getFile() . ' Line: ' . $e->getLine());
+            Log::error('Trace: ' . $e->getTraceAsString());
+
             return response()->json([
-                'error' => 'Error al cargar los estudios: ' . $e->getMessage()
-            ], 500);
+                'beneficiario' => [
+                    'id' => $beneficiario->id,
+                    'nombre' => $beneficiario->nombres . ' ' . $beneficiario->primer_apellido . ' ' . $beneficiario->segundo_apellido,
+                    'estudios_propios' => 0,
+                    'estudios_vinculados' => 0,
+                    'total_estudios' => 0
+                ],
+                'estudios' => []
+            ]);
         }
     }
 
     public function cargarResultados($id)
     {
-        // Buscar beneficiario y sus estudios socioeconómicos
         $beneficiario = \App\Models\Beneficiario::with('estudiosSocioeconomicos')->find($id);
 
         if (!$beneficiario) {
             return response()->json(['error' => 'Beneficiario no encontrado'], 404);
         }
 
-        // Renderizar la vista parcial con los resultados
         $html = '';
         $index = 1;
 
@@ -502,5 +586,103 @@ class BeneficiarioController extends Controller
         }
 
         return response($html);
+    }
+
+    public function vincularAEstudio(Request $request, Beneficiario $beneficiario)
+    {
+        try {
+            Log::info('Iniciando vinculación de estudio', [
+                'beneficiario_id' => $beneficiario->id,
+                'estudio_id' => $request->estudio_id,
+                'datos_request' => $request->all()
+            ]);
+
+            $request->validate([
+                'estudio_id' => 'required|exists:estudio_socioeconomico,id'
+            ]);
+
+            $estudioId = $request->estudio_id;
+
+            $estudio = EstudioSocioeconomico::find($estudioId);
+            if (!$estudio) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'El estudio no existe.'
+                ], 404);
+            }
+
+            if ($estudio->beneficiario_id === $beneficiario->id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No se puede vincular un beneficiario a su propio estudio.'
+                ], 422);
+            }
+
+            $vinculacionExistente = BeneficiarioEstudioVinculado::where([
+                'estudio_socioeconomico_id' => $estudioId,
+                'beneficiario_vinculado_id' => $beneficiario->id
+            ])->exists();
+
+            if ($vinculacionExistente) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'El beneficiario ya está vinculado a este estudio.'
+                ], 422);
+            }
+
+            $vinculacion = BeneficiarioEstudioVinculado::create([
+                'estudio_socioeconomico_id' => $estudioId,
+                'beneficiario_vinculado_id' => $beneficiario->id,
+                'beneficiario_principal_id' => $estudio->beneficiario_id
+            ]);
+
+            Log::info('Vinculación creada exitosamente', [
+                'vinculacion_id' => $vinculacion->id,
+                'estudio_id' => $estudioId,
+                'beneficiario_vinculado_id' => $beneficiario->id,
+                'beneficiario_principal_id' => $estudio->beneficiario_id
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Beneficiario vinculado correctamente al estudio.',
+                'data' => [
+                    'vinculacion' => $vinculacion,
+                    'estudio' => $estudio,
+                    'ruta_edicion' => route('beneficiarios.estudios-vinculados.editar', [
+                        'beneficiarioVinculado' => $beneficiario->id,
+                        'estudio' => $estudioId
+                    ])
+                ]
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Error de validación al vincular estudio', [
+                'errors' => $e->errors(),
+                'beneficiario_id' => $beneficiario->id,
+                'estudio_id' => $request->estudio_id
+            ]);
+
+            $errorMessages = collect($e->errors())->flatten()->implode(', ');
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error de validación: ' . $errorMessages,
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Error al vincular estudio', [
+                'error' => $e->getMessage(),
+                'beneficiario_id' => $beneficiario->id,
+                'estudio_id' => $request->estudio_id,
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error interno del servidor al vincular el estudio: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

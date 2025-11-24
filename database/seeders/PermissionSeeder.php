@@ -37,6 +37,11 @@ class PermissionSeeder extends Seeder
         Permission::create(['name' => 'editar areas', 'guard_name' => 'web']);
         Permission::create(['name' => 'eliminar areas', 'guard_name' => 'web']);
 
+        // ================== PERMISOS PARA VINCULACIONES DE ESTUDIOS ==================
+        Permission::create(['name' => 'ver vinculaciones estudios', 'guard_name' => 'web']);
+        Permission::create(['name' => 'crear vinculaciones estudios', 'guard_name' => 'web']);
+        Permission::create(['name' => 'eliminar vinculaciones estudios', 'guard_name' => 'web']);
+
         // ================== PERMISOS ADMINISTRATIVOS ==================
         Permission::create(['name' => 'gestionar roles', 'guard_name' => 'web']);
         Permission::create(['name' => 'acceder panel administracion', 'guard_name' => 'web']);
@@ -56,7 +61,9 @@ class PermissionSeeder extends Seeder
             'ver usuarios', 'crear usuarios', 'editar usuarios', 'eliminar usuarios', 'cambiar estatus usuarios',
             'ver beneficiarios', 'crear beneficiarios', 'editar beneficiarios', 'eliminar beneficiarios', 
             'importar beneficiarios', 'exportar beneficiarios',
-            'ver areas', 'crear areas', 'editar areas', 'eliminar areas',
+            'ver areas', 'crear areas', 'editar areas', 'eliminar areas', 
+            'ver vinculaciones estudios', 'crear vinculaciones estudios', 
+            'eliminar vinculaciones estudios',
             'acceder panel administracion', 
         ]);
 
@@ -75,17 +82,19 @@ class PermissionSeeder extends Seeder
         }
     }
     
-    private function createPermissionIfNotExists($permissionName)
+    private function createRoleIfNotExists($roleName)
     {
-        $permission = Permission::where('name', $permissionName)
+        $role = Role::where('name', $roleName)
             ->where('guard_name', 'web')
             ->first();
 
-        if (!$permission) {
-            Permission::create(['name' => $permissionName, 'guard_name' => 'web']);
-            $this->command->info("Permiso creado: " . $permissionName);
+        if (!$role) {
+            $role = Role::create(['name' => $roleName, 'guard_name' => 'web']);
+            $this->command->info("Rol creado: " . $roleName);
         } else {
-            $this->command->info("ℹPermiso ya existe: " . $permissionName);
+            $this->command->info("ℹRol ya existe: " . $roleName);
         }
+
+        return $role;
     }
 }

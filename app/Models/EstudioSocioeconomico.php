@@ -123,4 +123,30 @@ class EstudioSocioeconomico extends Model
     {
         return $this->belongsTo(Escolaridad::class, 'escolaridad_id');
     }
+
+
+
+    public function beneficiariosVinculados()
+    {
+        return $this->hasMany(BeneficiarioEstudioVinculado::class, 'estudio_socioeconomico_id');
+    }
+
+    public function todosBeneficiarios()
+    {
+        $principal = $this->beneficiario;
+        $vinculados = $this->beneficiariosVinculados->pluck('beneficiarioVinculado');
+
+        return collect([$principal])->merge($vinculados)->filter();
+    }
+
+    public function beneficiarioTieneAcceso($beneficiarioId)
+    {
+        if ($this->beneficiario_id == $beneficiarioId) {
+            return true;
+        }
+
+        return $this->beneficiariosVinculados()
+            ->where('beneficiario_vinculado_id', $beneficiarioId)
+            ->exists();
+    }
 }

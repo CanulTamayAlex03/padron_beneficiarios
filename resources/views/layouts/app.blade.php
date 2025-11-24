@@ -97,6 +97,15 @@
             </li>
             @endcan -->
             @endcan
+            @can('ver vinculaciones estudios')
+            <li class="nav-item mb-2">
+                <a class="nav-link text-white {{ request()->is('vinculaciones-estudios*') ? 'active bg-secondary rounded' : '' }}" 
+                href="{{ route('vinculaciones-estudios.index') }}">
+                <i class="bi bi-link-45deg me-2"></i>
+                <span class="nav-link-text">Vinculaciones</span>
+                </a>
+            </li>
+            @endcan
         </ul>
         <div class="sidebar-footer mt-auto p-2">
             <form method="POST" action="{{ route('logout') }}">

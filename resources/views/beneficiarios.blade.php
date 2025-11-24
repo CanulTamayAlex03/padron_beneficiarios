@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('title', 'Beneficiarios')
 @section('content')
-<div class="container">
+<div class="container-fluid px-4">
     <div class="row justify-content-center">
         <div class="col-md-12">
             <div class="card">
@@ -106,6 +106,7 @@
                                     <th>Nombre completo</th>
                                     <th>CURP</th>
                                     <th>Fecha Registro</th>
+                                    <th>Programa(s)</th> 
                                     <th>Estudios</th>
                                     <th>Acciones</th>
                                 </tr>
@@ -114,11 +115,10 @@
                                 @forelse($beneficiarios as $beneficiario)
 
                                 @php
-                                $cantidadEstudios = $beneficiario->estudiosSocioeconomicos->count();
+                                $estudiosPropios = $beneficiario->estudiosSocioeconomicos->count();
+                                $estudiosVinculados = $beneficiario->estudiosVinculados->count();
+                                $cantidadEstudios = $estudiosPropios + $estudiosVinculados;
 
-                                // El estudio se considera completo si:
-                                // - res_estudio_1, 2 y 3 NO son nulos
-                                // - y además NINGUNO tiene el valor "No aplica"
                                 $tieneEstudiosCompletos = $beneficiario->estudiosSocioeconomicos->contains(function ($estudio) {
                                 return !is_null($estudio->res_estudio_1)
                                 && !is_null($estudio->res_estudio_2)
@@ -128,14 +128,23 @@
                                 && $estudio->res_estudio_3 !== 'No aplica';
                                 });
 
+                                $tieneSoloVinculados = $estudiosPropios == 0 && $estudiosVinculados > 0;
+                                $tieneAmbos = $estudiosPropios > 0 && $estudiosVinculados > 0;
+
                                 if ($cantidadEstudios > 0) {
-                                $rutaEdicion = route('beneficiarios.estudios.editar', [$beneficiario->id, $beneficiario->estudiosSocioeconomicos->first()->id]);
-                                $tooltip = "Editar beneficiario y estudios (" . $cantidadEstudios . " estudios)";
-                                $badge = '<span class="badge bg-dark ms-1">' . $cantidadEstudios . '</span>';
+                                    if ($estudiosPropios > 0) {
+                                        $rutaEdicion = route('beneficiarios.estudios.editar', [$beneficiario->id, $beneficiario->estudiosSocioeconomicos->first()->id]);
+                                        $tooltip = "Editar beneficiario y estudios (" . $cantidadEstudios . " estudios)";
+                                    } else {
+                                        // Si solo tiene estudios vinculados, ir a edición básica del beneficiario
+                                        $rutaEdicion = route('beneficiarios.editar', $beneficiario->id);
+                                        $tooltip = "Editar beneficiario (" . $cantidadEstudios . " estudios vinculados)";
+                                    }
+                                    $badge = '<span class="badge bg-dark ms-1">' . $cantidadEstudios . '</span>';
                                 } else {
-                                $rutaEdicion = route('beneficiarios.editar', $beneficiario->id);
-                                $tooltip = "Editar beneficiario (sin estudios)";
-                                $badge = '';
+                                    $rutaEdicion = route('beneficiarios.editar', $beneficiario->id);
+                                    $tooltip = "Editar beneficiario (sin estudios)";
+                                    $badge = '';
                                 }
                                 @endphp
 
@@ -166,30 +175,69 @@
                                         </span>
                                     </td>
                                     <td>{{ $beneficiario->curp }}</td>
-                                    <td>{{ $beneficiario->created_at->format('d/m/Y H:i') }}</td>
-
+                                    <td>{{ $beneficiario->created_at->format('d/m/Y') }}</td>
                                     <td>
-                                        @if($cantidadEstudios > 0)
-                                        <span class="badge bg-primary view-estudios-btn"
-                                            style="cursor: pointer;"
-                                            data-beneficiario-id="{{ $beneficiario->id }}"
-                                            data-beneficiario-nombre="{{ $beneficiario->nombres }} {{ $beneficiario->primer_apellido }} {{ $beneficiario->segundo_apellido }}"
-                                            title="Ver estudios de este beneficiario">
-                                            {{ $cantidadEstudios }}
-                                        </span>
+                                        @php
+                                            $programasNombres = [];
+                                            foreach ($beneficiario->estudiosSocioeconomicos as $estudio) {
+                                                if ($estudio->programa) {
+                                                    $programasNombres[] = $estudio->programa->nombre_programa;
+                                                }
+                                            }
+                                            foreach ($beneficiario->estudiosVinculados as $vinculado) {
+                                                if ($vinculado->estudio && $vinculado->estudio->programa) {
+                                                    $programasNombres[] = $vinculado->estudio->programa->nombre_programa;
+                                                }
+                                            }
+                                            $programasUnicos = array_unique($programasNombres);
+                                        @endphp
+                                        @if(!empty($programasUnicos))
+                                            <div class="programas-lista" style="max-width: 200px;">
+                                                @foreach($programasUnicos as $programa)
+                                                    <span class="mb-1" 
+                                                          style="display: block; font-size: 0.8rem;">
+                                                        <small>- {{ $programa }}</small>
+                                                    </span>
+                                                @endforeach
+                                            </div>
                                         @else
-                                        <span class="badge bg-secondary">0</span>
+                                            <span class="text" style="display: block; font-size: 0.8rem;"><small>Sin programa</small></span>
                                         @endif
                                     </td>
+                                    <td>
+                                        @if($cantidadEstudios > 0)
+                                            <span class="badge bg-primary ver-estudios-existente-btn"
+                                                style="cursor: pointer;"
+                                                data-beneficiario-id="{{ $beneficiario->id }}"
+                                                data-beneficiario-nombre="{{ $beneficiario->nombres }} {{ $beneficiario->primer_apellido }} {{ $beneficiario->segundo_apellido }}"
+                                                title="@if($tieneAmbos)
+                                                    {{ $estudiosPropios }} estudios propios + {{ $estudiosVinculados }} vinculados
+                                                @elseif($tieneSoloVinculados)
+                                                    {{ $estudiosVinculados }} estudios vinculados
+                                                @else
+                                                    {{ $cantidadEstudios }} estudios propios
+                                                @endif">
 
+                                                {{ $cantidadEstudios }}
+                                                @if($tieneSoloVinculados)
+                                                    🔗
+                                                @elseif($tieneAmbos)
+                                                    ⚡
+                                                @endif
+                                            </span>
+                                        @else
+                                            <span class="badge bg-secondary">0</span>
+                                        @endif
+                                    </td>
                                     <td>
                                         @can('editar beneficiarios')
-                                        <a href="{{ route('estudios.create', $beneficiario->id) }}"
-                                            class="btn btn-sm btn-primary"
+                                        <button class="btn btn-sm btn-primary opciones-estudio-btn"
+                                            data-beneficiario-id="{{ $beneficiario->id }}"
+                                            data-beneficiario-nombre="{{ $beneficiario->nombres }} {{ $beneficiario->primer_apellido }} {{ $beneficiario->segundo_apellido }}"
                                             data-bs-toggle="tooltip"
-                                            title="Crear estudio socioeconómico">
+                                            title="Opciones de estudio socioeconómico">
                                             <i class="bi bi-clipboard-plus"></i>
-                                        </a>
+                                        </button>
 
                                         <a href="{{ $rutaEdicion }}"
                                             class="btn btn-sm btn-warning"
@@ -406,6 +454,7 @@
         background-color: #0d6efd;
         color: white;
     }
+
 </style>
 
 <!-- Incluir los archivos separados -->
@@ -414,6 +463,7 @@
 @include('scripts.beneficiarios-modals')
 @include('scripts.resultados-estudios')
 @include('scripts.select-estudios')
+
 
 <!--
 @if(session('abrir_resultados'))

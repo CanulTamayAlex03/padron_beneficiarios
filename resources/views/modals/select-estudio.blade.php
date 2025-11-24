@@ -8,7 +8,7 @@
             <div class="modal-body">
                 <div class="mb-3">
                     <h6>Beneficiario: <span id="beneficiario-nombre"></span></h6>
-                    <p class="text-muted">Total de estudios: <strong><span id="total-estudios"></span></strong></p>
+                    <p class="text-muted">Estudios: <strong><span id="total-estudios"></span></strong></p>
                 </div>
                 
                 <div class="table-responsive">
@@ -16,8 +16,9 @@
                         <thead>
                             <tr>
                                 <th>Folio</th>
-                                <th>Fecha de Creación</th>
+                                <th>Fecha</th>
                                 <th>Estado</th>
+                                <th>Tipo</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>

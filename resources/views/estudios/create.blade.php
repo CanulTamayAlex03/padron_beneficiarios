@@ -14,9 +14,6 @@
                             <i class="bi bi-clipboard-data me-2"></i>
                             Nuevo Estudio Socioeconómico
                         </h3>
-                        <a href="{{ route('beneficiarios') }}" class="btn btn-light btn-sm">
-                            <i class="bi bi-arrow-left"></i> Volver
-                        </a>
                     </div>
                 </div>
                 <div class="card-body">
@@ -46,16 +43,13 @@
                         </div>
                     </div>
 
-                    <!-- Inclusión de la sección de acompañantes -->
                     @include('estudios.paginas.acompanantes') 
 
-                    <!-- Formulario del Estudio Socioeconómico -->
                     <form action="{{ route('estudios.store') }}" method="POST" id="estudioForm">
                         @csrf
 
                         <input type="hidden" name="beneficiario_id" value="{{ $beneficiario->id }}">
 
-                        <!-- Sección de datos básicos del estudio -->
                         <div class="card mb-4">
                             <div class="card-header bg-secondary text-white">
                                 <h5 class="mb-0">
@@ -67,8 +61,39 @@
                                 <div class="row">
                                     <div class="col-md-4 mb-3">
                                         <label for="folio" class="form-label">Folio *</label>
-                                        <input type="text" class="form-control" id="folio" name="folio"
-                                            value="{{ old('folio') }}" required>
+                                        <input type="text" 
+                                            class="form-control" 
+                                            id="folio" 
+                                            name="folio"
+                                            value="{{ old('folio') }}" 
+                                            maxlength="6"
+                                            pattern="[0-9]*"
+                                            inputmode="numeric"
+                                            oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                                            required>
+                                        
+                                        <div id="folio-status" class="small mt-1 d-none">
+                                            <i class="bi"></i> <span></span>
+                                        </div>
+                                        
+                                        <div id="folio-existente-alert" class="alert alert-warning d-none mt-2">
+                                            <div class="d-flex align-items-center">
+                                                <i class="bi bi-exclamation-triangle me-2"></i>
+                                                <div>
+                                                    <small>
+                                                    <a href="#" id="estudio-existente-link" class=" text-decoration-none">
+                                                        <span id="estudio-existente-info"></span>
+                                                    </a>
+                                                    </small>
+                                                    <br>
+                                                    <small class="text-muted">
+                                                        <i class="bi bi-calendar me-1"></i> 
+                                                        Creado el: <span id="estudio-fecha-creacion"></span>
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
                                         @error('folio')
                                         <div class="text-danger small">{{ $message }}</div>
                                         @enderror
@@ -84,18 +109,17 @@
                                     </div>
 
                                     <div class="col-md-4 mb-3">
-                                        <label for="region_id" class="form-label">Región *</label>
-                                        <select class="form-select" id="region_id" name="region_id" required>
-                                            <option value="">Seleccionar región...</option>
-                                            @foreach($regiones as $region)
-                                            <option value="{{ $region->id }}" {{ old('region_id') == $region->id ? 'selected' : '' }}>
-                                                {{ $region->nombre_region }}
-                                            </option>
-                                            @endforeach
-                                        </select>
-                                        @error('region_id')
-                                        <div class="text-danger small">{{ $message }}</div>
-                                        @enderror
+                                        <label class="form-label">Municipio y Región</label>
+                                        <div class="form-control bg-light" style="min-height: 38px; display: flex; align-items: center;">
+                                            <strong>
+                                                {{ $beneficiario->municipio->descripcion ?? 'No asignado' }}
+                                                <span class="badge bg-primary ms-2">
+                                                    Región {{ $beneficiario->municipio->region ?? 'N/A' }}
+                                                </span>
+                                            </strong>
+                                        </div>
+                                        <input type="hidden" name="municipio_id" value="{{ $beneficiario->municipio_id ?? '' }}">
+                                        <input type="hidden" name="region" value="{{ $beneficiario->municipio->region ?? '' }}">
                                     </div>
 
                                     <div class="col-md-6 mb-3">
@@ -253,7 +277,6 @@
                 }
             });
 
-            // Restaurar valores si hubo error en validación
             @if(old('programa_id'))
             programaSelect.value = '{{ old('
             programa_id ') }}';
@@ -269,7 +292,6 @@
         }
     });
 
-    // Funciones de navegación entre pasos
     function siguientePaso(paso) {
         const nextTab = new bootstrap.Tab(document.getElementById(`paso${paso}-tab`));
         nextTab.show();
@@ -312,15 +334,188 @@
         }
     }
 
-    // Si es edición, cargar los tipos automáticamente
     @if(isset($estudio) && $estudio->exists)
         cargarTiposPrograma({{ $estudio->programa_id }}, {{ $estudio->tipo_programa_id }});
     @endif
 
-    // Event listener para cambios en programa
     programaSelect.addEventListener('change', function() {
         cargarTiposPrograma(this.value);
     });
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const folioInput = document.getElementById('folio');
+    const folioStatus = document.getElementById('folio-status');
+    const folioAlert = document.getElementById('folio-existente-alert');
+    const estudioInfo = document.getElementById('estudio-existente-info');
+    const estudioLink = document.getElementById('estudio-existente-link');
+    const estudioFecha = document.getElementById('estudio-fecha-creacion');
+
+    let folioCheckTimeout = null;
+    let folioValido = true;
+
+    function verificarFolio() {
+        const folio = folioInput.value.trim();
+
+        if (folioCheckTimeout) {
+            clearTimeout(folioCheckTimeout);
+        }
+
+        const esNumero = /^[0-9]+$/.test(folio);
+        const esLongitudValida = folio.length <= 6;
+
+        if (folio === '' || !esNumero || !esLongitudValida) {
+            folioStatus.classList.add('d-none');
+            folioAlert.classList.add('d-none');
+            folioValido = false;
+            
+            if (folio !== '' && !esNumero) {
+                folioStatus.classList.remove('d-none');
+                folioStatus.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle"></i> Solo se permiten números</span>';
+                folioInput.classList.add('is-invalid');
+            } else if (folio !== '' && !esLongitudValida) {
+                folioStatus.classList.remove('d-none');
+                folioStatus.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle"></i> Máximo 6 dígitos</span>';
+                folioInput.classList.add('is-invalid');
+            } else {
+                folioInput.classList.remove('is-invalid');
+                folioValido = true;
+            }
+            
+            actualizarEstadoBoton();
+            return;
+        }
+
+        folioInput.classList.remove('is-invalid');
+        folioValido = true;
+
+        folioStatus.classList.remove('d-none');
+        folioStatus.innerHTML = '<span class="text-warning"><i class="bi bi-hourglass-split"></i> Verificando...</span>';
+        folioAlert.classList.add('d-none');
+
+        folioCheckTimeout = setTimeout(() => {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+            fetch(`{{ route('estudios.check-folio') }}?folio=${encodeURIComponent(folio)}`, {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.exists) {
+                    const estudio = data.estudio;
+
+                    folioStatus.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle"></i> Folio ya registrado</span>';
+                    folioValido = false;
+
+                    estudioInfo.textContent = estudio.texto_link;
+                    estudioLink.href = estudio.ruta_edicion;
+                    estudioFecha.textContent = estudio.fecha_creacion;
+                    folioAlert.classList.remove('d-none');
+
+                    folioInput.classList.add('is-invalid');
+                } else {
+                    folioStatus.innerHTML = '<span class="text-success"><i class="bi bi-check-circle"></i> Folio disponible</span>';
+                    folioValido = true;
+                    folioAlert.classList.add('d-none');
+                    folioInput.classList.remove('is-invalid');
+                }
+
+                actualizarEstadoBoton();
+            })
+            .catch(error => {
+                console.error('Error al verificar folio:', error);
+                folioStatus.innerHTML = '<span class="text-warning"><i class="bi bi-exclamation-triangle"></i> Error al verificar</span>';
+                folioValido = true;
+                folioAlert.classList.add('d-none');
+                actualizarEstadoBoton();
+            });
+        }, 800);
+    }
+
+    function actualizarEstadoBoton() {
+        const submitBtn = document.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.disabled = !folioValido;
+        }
+    }
+
+    folioInput.addEventListener('input', function() {
+        this.value = this.value.replace(/[^0-9]/g, '');
+        
+        if (this.value.length > 6) {
+            this.value = this.value.slice(0, 6);
+        }
+        
+        verificarFolio();
+    });
+    
+    folioInput.addEventListener('blur', function() {
+        if (this.value.trim() !== '') {
+            verificarFolio();
+        }
+    });
+
+    document.getElementById('estudioForm').addEventListener('submit', function(e) {
+        const folio = folioInput.value.trim();
+
+        if (folio === '') {
+            e.preventDefault();
+            showAlert('El folio es obligatorio', 'danger');
+            return;
+        }
+
+        if (!/^[0-9]+$/.test(folio)) {
+            e.preventDefault();
+            showAlert('El folio solo debe contener números', 'danger');
+            return;
+        }
+
+        if (folio.length > 6) {
+            e.preventDefault();
+            showAlert('El folio no puede tener más de 6 dígitos', 'danger');
+            return;
+        }
+
+        if (!folioValido) {
+            e.preventDefault();
+            showAlert('El folio ya está registrado. Por favor use otro.', 'danger');
+            return;
+        }
+    });
+
+    if (typeof showAlert !== 'function') {
+        window.showAlert = function(message, type = 'success') {
+            const container = document.querySelector('.card-body') || document.body;
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    <strong>${type === 'danger' ? 'Error:' : ''}</strong>
+                    <span class="ms-1">${message}</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+            container.prepend(wrapper.firstElementChild);
+
+            setTimeout(() => {
+                const alert = container.querySelector('.alert');
+                if (alert) {
+                    bootstrap.Alert.getOrCreateInstance(alert).close();
+                }
+            }, 5000);
+        };
+    }
+    
+    actualizarEstadoBoton();
 });
 </script>
 @endsection

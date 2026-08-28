@@ -7,12 +7,9 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Sistema DIF')</title>
 
-    <!-- CSS compilado con Mix -->
     <link href="{{ mix('css/app.css') }}" rel="stylesheet">
-    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="{{ asset('css/bootstrap-icons.css') }}">
     <link href="{{ asset('css/layout.css') }}" rel="stylesheet">
-
     <link rel="shortcut icon" href="{{ asset('images/buena-persona.png') }}" type="image/png">
     <link rel="icon" href="{{ asset('images/buena-persona.png') }}" type="image/png">
 
@@ -21,7 +18,6 @@
 
 <body>
     @auth
-    <!-- ========== Sidebar ========== -->
     <div class="sidebar bg-dark text-white" id="sidebar">
         <div class="sidebar-header">
             <img src="{{ asset('images/logodif.jpg') }}" alt="Logo DIF" class="sidebar-logo">
@@ -49,7 +45,8 @@
 
             @can('importar beneficiarios')
             <li class="nav-item mb-2">
-                <a class="nav-link text-white" href="{{ route('administrador.importar_beneficiarios') }}">
+                <a class="nav-link text-white {{ request()->routeIs('administrador.importar_beneficiarios') ? 'active bg-secondary rounded' : '' }}" 
+                href="{{ route('administrador.importar_beneficiarios') }}">
                     <i class="bi bi-file-earmark-spreadsheet-fill me-2"></i>
                     <span class="nav-link-text">Importar</span>
                 </a>
@@ -126,7 +123,6 @@
             </button>
             <div class="navbar-brand ms-3"></div>
 
-            <!-- Menú derecho -->
             <div class="d-flex ms-auto align-items-center">
                 <span class="text-white me-3">
                     <i class="bi bi-person-circle me-1"></i>
@@ -178,33 +174,27 @@
 
     @auth
     <script>
-        // Inicializar todos los componentes de Bootstrap manualmente
         document.addEventListener('DOMContentLoaded', function() {
-            // Inicializar tooltips
             var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
             var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
                 return new bootstrap.Tooltip(tooltipTriggerEl);
             });
 
-            // Inicializar popovers
             var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
             var popoverList = popoverTriggerList.map(function(popoverTriggerEl) {
                 return new bootstrap.Popover(popoverTriggerEl);
             });
 
-            // Inicializar dropdowns
             var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
             var dropdownList = dropdownElementList.map(function(dropdownToggleEl) {
                 return new bootstrap.Dropdown(dropdownToggleEl);
             });
 
-            // Inicializar modals
             var modalElementList = [].slice.call(document.querySelectorAll('.modal'));
             var modalList = modalElementList.map(function(modalEl) {
                 return new bootstrap.Modal(modalEl);
             });
 
-            // Tu código existente del sidebar
             const sidebar = document.getElementById('sidebar');
             const sidebarToggle = document.getElementById('sidebarToggle');
             const mobileSidebarClose = document.getElementById('mobileSidebarClose');

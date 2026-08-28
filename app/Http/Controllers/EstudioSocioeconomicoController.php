@@ -17,6 +17,7 @@ use App\Models\ServicioSalud;
 use App\Models\Escolaridad;
 use App\Models\Parentesco;
 use App\Models\BeneficiarioEstudioVinculado;
+use App\Models\IntegranteHogar;
 use Illuminate\Support\Facades\Log;
 
 class EstudioSocioeconomicoController extends Controller
@@ -25,7 +26,6 @@ class EstudioSocioeconomicoController extends Controller
     {
         $estudios = EstudioSocioeconomico::with([
             'beneficiario',
-            'region',
             'solicitud',
             'programa',
             'tipoPrograma',
@@ -38,8 +38,6 @@ class EstudioSocioeconomicoController extends Controller
     public function create($beneficiarioId, EstudioSocioeconomico $estudio = null)
     {
         $beneficiario = Beneficiario::findOrFail($beneficiarioId);
-
-        $regiones = Region::activas()->get();
         $solicitudes = Solicitud::all();
         $programas = Programa::with('tiposPrograma')->get();
         $tiposPrograma = TipoPrograma::all();
@@ -53,7 +51,6 @@ class EstudioSocioeconomicoController extends Controller
         return view('estudios.create', compact(
             'beneficiario',
             'estudio',
-            'regiones',
             'solicitudes',
             'programas',
             'tiposPrograma',
@@ -70,7 +67,6 @@ class EstudioSocioeconomicoController extends Controller
             'folio' => 'required|unique:estudio_socioeconomico,folio',
             'fecha_solicitud' => 'required|date',
             'beneficiario_id' => 'required|exists:beneficiarios,id',
-            'region_id' => 'required|exists:region,id',
             'solicitud_id' => 'required|exists:solicitud,id',
             'programa_id' => 'required|exists:programa,id',
             'tipo_programa_id' => 'required|exists:tipo_programa,id',
@@ -105,18 +101,37 @@ class EstudioSocioeconomicoController extends Controller
         ]);
 
         try {
-            $resultados = $this->calcularResultadosEstudios(new EstudioSocioeconomico(), $validated);
+            $beneficiario = Beneficiario::with('municipio')->find($request->beneficiario_id);
 
+            if (!$beneficiario || !$beneficiario->municipio) {
+                throw new \Exception('El beneficiario no tiene un municipio asignado.');
+            }
+
+            $region = $beneficiario->municipio->region;
+
+            if (!$region) {
+                throw new \Exception('El municipio del beneficiario no tiene región asignada.');
+            }
+
+            $validated['municipio_id'] = $beneficiario->municipio_id;
+            $validated['region'] = $region;
+
+            $resultados = $this->calcularResultadosEstudios(new EstudioSocioeconomico(), $validated);
             $datosCompletos = array_merge($validated, $resultados);
 
             $estudio = EstudioSocioeconomico::create($datosCompletos);
 
-            return redirect()->route('beneficiarios', [
+            IntegranteHogar::create([
+                'estudio_socioeconomico_id' => $estudio->id,
+                'integrante' => 1,
+                'ingreso_mensual' => 0
+            ]);
+
+            return redirect()->route('beneficiarios.estudios.editar', [
                 'beneficiario' => $estudio->beneficiario_id,
                 'estudio' => $estudio->id
             ])
-                ->with('success', 'Estudio socioeconómico creado exitosamente. Complete la información restante.')
-                ->with('abrir_resultados', $estudio->beneficiario_id);
+                ->with('success', 'Estudio socioeconómico creado exitosamente. Complete la información restante.');
         } catch (\Exception $e) {
             Log::error('Error al crear estudio socioeconómico: ' . $e->getMessage());
 
@@ -129,8 +144,7 @@ class EstudioSocioeconomicoController extends Controller
     public function show(EstudioSocioeconomico $estudio)
     {
         $estudio->load([
-            'beneficiario.familiares.parentesco',
-            'region',
+            'beneficiario.familiares',
             'solicitud',
             'programa',
             'tipoPrograma',
@@ -148,12 +162,11 @@ class EstudioSocioeconomicoController extends Controller
             abort(404, 'El estudio no pertenece a este beneficiario');
         }
 
-        $estudio->load(['integrantesHogar.parentesco', 'lineaConeval']);
+        $estudio->load(['integrantesHogar', 'lineaConeval']);
         $totalPersonas = $estudio->integrantesHogar->count();
 
         $estudios = $beneficiario->estudiosSocioeconomicos()->orderBy('created_at', 'desc')->get();
 
-        $regiones = Region::activas()->get();
         $solicitudes = Solicitud::all();
         $programas = Programa::with('tiposPrograma')->get();
         $tiposPrograma = TipoPrograma::all();
@@ -173,7 +186,6 @@ class EstudioSocioeconomicoController extends Controller
             'beneficiario',
             'estudio',
             'estudios',
-            'regiones',
             'solicitudes',
             'programas',
             'tiposPrograma',
@@ -188,13 +200,14 @@ class EstudioSocioeconomicoController extends Controller
         ));
     }
 
-    public function update(Request $request, EstudioSocioeconomico $estudio)
-    {
+public function update(Request $request, EstudioSocioeconomico $estudio)
+{
+
+    try {
         $validated = $request->validate([
-            'folio' => 'required|unique:estudio_socioeconomico,folio,' . $estudio->id,
+            'folio' => 'nullable|unique:estudio_socioeconomico,folio,' . $estudio->id,
             'fecha_solicitud' => 'required|date',
             'beneficiario_id' => 'required|exists:beneficiarios,id',
-            'region_id' => 'required|exists:region,id',
             'solicitud_id' => 'required|exists:solicitud,id',
             'programa_id' => 'required|exists:programa,id',
             'tipo_programa_id' => 'required|exists:tipo_programa,id',
@@ -227,32 +240,36 @@ class EstudioSocioeconomicoController extends Controller
             'menores_dieta_alimentos_baratos' => 'nullable|boolean'
         ]);
 
-        try {
-            $resultados = $this->calcularResultadosEstudios($estudio, $validated);
-
-            $datosActualizados = array_merge($validated, $resultados);
-
-            $estudio->update($datosActualizados);
-            $estudio->load('beneficiario');
-
-            return redirect()->route('beneficiarios', [$estudio->beneficiario_id, $estudio->id])
-                ->with('success', 'Estudio socioeconómico del beneficiario "'
-                    . $estudio->beneficiario->nombres . ' '
-                    . $estudio->beneficiario->primer_apellido
-                    . '" (Folio: ' . $estudio->folio . ') actualizado exitosamente.')
-                ->with('abrir_resultados', $estudio->beneficiario_id);
-        } catch (\Exception $e) {
-            Log::error('Error al actualizar estudio socioeconómico: ' . $e->getMessage());
-
-            return redirect()->back()
-                ->with('error', 'Error al actualizar el estudio socioeconómico: ' . $e->getMessage())
-                ->withInput();
+        if (!isset($validated['municipio_id'])) {
+            $validated['municipio_id'] = $estudio->municipio_id;
+        }
+        if (!isset($validated['region'])) {
+            $validated['region'] = $estudio->region;
         }
 
-        $request->merge([
-            'coneval_active' => $request->input('coneval_active', 0),
-        ]);
+        $resultados = $this->calcularResultadosEstudios($estudio, $validated);
+        $datosActualizados = array_merge($validated, $resultados);
+        $estudio->update($datosActualizados);
+        $estudio->load('beneficiario');
+
+        return redirect()->route('beneficiarios.estudios.editar', [
+            'beneficiario' => $estudio->beneficiario_id,
+            'estudio' => $estudio->id
+        ])->with('success', 'Estudio socioeconómico actualizado exitosamente.');
+
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        Log::error('ERROR DE VALIDACIÓN:', $e->errors());
+        return redirect()->back()
+            ->withErrors($e->errors())
+            ->withInput();
+    } catch (\Exception $e) {
+        Log::error('ERROR GENERAL: ' . $e->getMessage());
+        Log::error('Trace: ' . $e->getTraceAsString());
+        return redirect()->back()
+            ->with('error', 'Error al actualizar: ' . $e->getMessage())
+            ->withInput();
     }
+}
 
     private function obtenerLineasConeval($estudio = null)
     {
@@ -341,7 +358,7 @@ class EstudioSocioeconomicoController extends Controller
         }
     }
 
-    private function calcularResultadosEstudios($estudio, $datos)
+    public function calcularResultadosEstudios($estudio, $datos)
     {
         $resultados = [];
 
@@ -612,11 +629,10 @@ class EstudioSocioeconomicoController extends Controller
         }
 
         $estudio->load([
-            'region',
             'solicitud',
             'programa',
             'tipoPrograma',
-            'integrantesHogar.parentesco',
+            'integrantesHogar',
             'beneficiario'
         ]);
 
@@ -626,7 +642,7 @@ class EstudioSocioeconomicoController extends Controller
             'estadoViv',
             'municipio',
             'ocupacion',
-            'familiares.parentesco'
+            'familiares'
         ]);
 
         $ocupaciones = Ocupacion::where('activo', 1)->orderBy('ocupacion')->get();
@@ -649,9 +665,6 @@ class EstudioSocioeconomicoController extends Controller
     public function estudiosDisponiblesParaVincular()
     {
         try {
-            Log::info('🔍 Iniciando estudiosDisponiblesParaVincular');
-
-           
             $estudios = \App\Models\EstudioSocioeconomico::with('beneficiario')
                 ->where('id', '>', 0)
                 ->get()
@@ -662,18 +675,17 @@ class EstudioSocioeconomicoController extends Controller
                         'beneficiario_nombre' => $estudio->beneficiario ?
                             $estudio->beneficiario->nombres . ' ' . $estudio->beneficiario->primer_apellido : 'Sin beneficiario',
                         'fecha_creacion' => $estudio->created_at->format('d/m/Y'),
-                        'programa_nombre' => $estudio->programa ? $estudio->programa->nombre_programa : 'Sin programa'                    ];
+                        'programa_nombre' => $estudio->programa ? $estudio->programa->nombre_programa : 'Sin programa'
+                    ];
                 });
-
-            Log::info('✅ Estudios encontrados: ' . $estudios->count());
 
             return response()->json([
                 'success' => true,
                 'estudios' => $estudios
             ]);
         } catch (\Exception $e) {
-            Log::error('❌ Error en estudiosDisponiblesParaVincular: ' . $e->getMessage());
-            Log::error('❌ Stack trace: ' . $e->getTraceAsString());
+            Log::error('Error en estudiosDisponiblesParaVincular: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
 
             return response()->json([
                 'success' => false,
@@ -681,5 +693,78 @@ class EstudioSocioeconomicoController extends Controller
                 'estudios' => []
             ], 500);
         }
+    }
+
+    public function checkFolio(Request $request)
+    {
+        try {
+            $folio = $request->query('folio');
+
+            if (!$folio || empty(trim($folio))) {
+                return response()->json(['exists' => false]);
+            }
+
+            $estudio = EstudioSocioeconomico::where('folio', $folio)->first();
+
+            if ($estudio) {
+                $beneficiario = $estudio->beneficiario;
+
+                $nombreCompleto = $beneficiario
+                    ? $beneficiario->nombres . ' ' . $beneficiario->primer_apellido . ' ' . $beneficiario->segundo_apellido
+                    : 'Beneficiario no encontrado';
+
+                return response()->json([
+                    'exists' => true,
+                    'estudio' => [
+                        'id' => $estudio->id,
+                        'folio' => $estudio->folio,
+                        'beneficiario_nombre' => $nombreCompleto,
+                        'beneficiario_id' => $beneficiario ? $beneficiario->id : null,
+                        'fecha_creacion' => $estudio->created_at->format('d/m/Y'),
+                        'ruta_edicion' => $beneficiario
+                            ? route('beneficiarios.estudios.editar', [
+                                'beneficiario' => $beneficiario->id,
+                                'estudio' => $estudio->id
+                            ])
+                            : '#',
+                        'texto_link' => $beneficiario
+                            ? $nombreCompleto . ' - ' . $estudio->folio . ''
+                            : 'Folio: ' . $estudio->folio
+                    ]
+                ]);
+            }
+
+            return response()->json(['exists' => false]);
+        } catch (\Exception $e) {
+            Log::error('Error al verificar folio: ' . $e->getMessage());
+            return response()->json(['error' => 'Error interno'], 500);
+        }
+    }
+
+
+    public static function calcularPuntosVivienda($valor)
+    {
+        $puntos = [
+            'Tierra' => 3,
+            'Cemento' => 2,
+            'Mosaico, madera, otro' => 1,
+            'Cantón, llantas, huano' => 3,
+            'Asbesto, madera, lamina' => 2,
+            'Cemento, piedra, block' => 1,
+            'Pozo' => 3,
+            'De la llave' => 2,
+            'Purificada' => 1,
+            'Carbón, leña' => 3,
+            'Gas' => 2,
+            'Parrilla eléctrica, otra' => 1,
+            'Rentada' => 3,
+            'Prestada' => 2,
+            'Propia o familiar' => 1,
+            'Ningún servicio' => 3,
+            'Letrina' => 2,
+            'Inodoro' => 1
+        ];
+
+        return $puntos[$valor] ?? 0;
     }
 }

@@ -5,7 +5,6 @@
         </legend>
 
         <div class="row">
-            <!-- NUEVA PREGUNTA: Energía eléctrica -->
             <div class="col-md-6 mb-4">
                 <label class="form-label fw-bold">
                     <i class="bi bi-lightning-charge me-2"></i>¿El hogar cuenta con energía eléctrica?
@@ -28,7 +27,6 @@
                 </div>
             </div>
 
-            <!-- Pregunta 1: Piso -->
             <div class="col-md-6 mb-4">
                 <label class="form-label fw-bold">
                     <i class="bi bi-house-door me-2"></i>Piso, ¿La mayor parte del piso de la vivienda es de?
@@ -50,7 +48,6 @@
                 </select>
             </div>
 
-            <!-- Pregunta 2: Techo -->
             <div class="col-md-6 mb-4">
                 <label class="form-label fw-bold">
                     <i class="bi bi-house me-2"></i>Techo, ¿La mayor parte del techo de la vivienda es de?
@@ -72,7 +69,6 @@
                 </select>
             </div>
 
-            <!-- Pregunta 3: Agua -->
             <div class="col-md-6 mb-4">
                 <label class="form-label fw-bold">
                     <i class="bi bi-droplet me-2"></i>Agua, ¿Qué agua utiliza para preparar alimentos?
@@ -94,7 +90,6 @@
                 </select>
             </div>
 
-            <!-- Pregunta 4: Medio de cocina -->
             <div class="col-md-6 mb-4">
                 <label class="form-label fw-bold">
                     <i class="bi bi-fire me-2"></i>¿Qué medio usan para cocinar los alimentos?
@@ -116,7 +111,6 @@
                 </select>
             </div>
 
-            <!-- Pregunta 5: Tenencia -->
             <div class="col-md-6 mb-4">
                 <label class="form-label fw-bold">
                     <i class="bi bi-house-check me-2"></i>Tenencia, ¿La vivienda es?
@@ -138,7 +132,6 @@
                 </select>
             </div>
 
-            <!-- Pregunta 6: Servicio sanitario -->
             <div class="col-md-6 mb-4">
                 <label class="form-label fw-bold">
                     <i class="bi bi-bucket me-2"></i>¿Cuenta con servicio sanitario?
@@ -213,7 +206,6 @@
             </div>
         </div>
 
-        <!-- Sección de Resumen de Puntos (ACTUALIZADA) -->
         @if(isset($estudio) && $estudio->id)
         <div class="card mt-4">
             <div class="card-header text-light">
@@ -223,33 +215,14 @@
             </div>
             <div class="card-body">
                 @php
-                // Función para calcular puntos según la opción seleccionada
-                function calcularPuntosVivienda($valor) {
-                $puntos = [
-                // Piso (máximo 3 puntos)
-                'Tierra' => 3, 'Cemento' => 2, 'Mosaico, madera, otro' => 1,
-                // Techo (máximo 3 puntos)
-                'Cantón, llantas, huano' => 3, 'Asbesto, madera, lamina' => 2, 'Cemento, piedra, block' => 1,
-                // Agua (máximo 3 puntos)
-                'Pozo' => 3, 'De la llave' => 2, 'Purificada' => 1,
-                // Cocina (máximo 3 puntos)
-                'Carbón, leña' => 3, 'Gas' => 2, 'Parrilla eléctrica, otra' => 1,
-                // Tenencia vivienda (máximo 3 puntos)
-                'Rentada' => 3, 'Prestada' => 2, 'Propia o familiar' => 1,
-                // Servicio sanitario (máximo 3 puntos)
-                'Ningún servicio' => 3, 'Letrina' => 2, 'Inodoro' => 1
-                ];
-                return $puntos[$valor] ?? 0;
-                }
-
-                // Calcular puntos para cada campo
+                $controller = app('App\Http\Controllers\EstudioSocioeconomicoController');
                 $puntosElectricidad = $estudio->electricidad == 0 ? 1 : 0;
-                $puntosPiso = calcularPuntosVivienda($estudio->tipo_piso);
-                $puntosTecho = calcularPuntosVivienda($estudio->tipo_techo);
-                $puntosAgua = calcularPuntosVivienda($estudio->agua_alimentos);
-                $puntosCocina = calcularPuntosVivienda($estudio->medio_cocina);
-                $puntosVivienda = calcularPuntosVivienda($estudio->vivienda);
-                $puntosSanitario = calcularPuntosVivienda($estudio->servicio_sanitario);
+                $puntosPiso = $controller->calcularPuntosVivienda($estudio->tipo_piso);
+                $puntosTecho = $controller->calcularPuntosVivienda($estudio->tipo_techo);
+                $puntosAgua = $controller->calcularPuntosVivienda($estudio->agua_alimentos);
+                $puntosCocina = $controller->calcularPuntosVivienda($estudio->medio_cocina);
+                $puntosVivienda = $controller->calcularPuntosVivienda($estudio->vivienda);
+                $puntosSanitario = $controller->calcularPuntosVivienda($estudio->servicio_sanitario);
                 $puntosRazon = ($estudio->razon_mayor == 1) ? 2 : 0;
 
                 $totalVivienda = $puntosElectricidad + $puntosPiso + $puntosTecho + $puntosAgua + $puntosCocina + $puntosVivienda + $puntosSanitario + $puntosRazon;
@@ -333,7 +306,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const razonField = document.getElementById('razon_calculada');
     const razonSelect = document.getElementById('razon_mayor');
 
-    // Valor PHP insertado correctamente
     const numPersonas = {{ $numPersonas ?? 0 }};
 
     if (inputCuartos) {
@@ -347,11 +319,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
             razonField.value = razon;
 
-            // Selección automática según la razón
             if (razon > 2.5) {
-                razonSelect.value = "1"; // Sí
+                razonSelect.value = "1";
             } else {
-                razonSelect.value = "0"; // No
+                razonSelect.value = "0";
             }
         });
     }

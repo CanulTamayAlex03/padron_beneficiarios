@@ -4,7 +4,6 @@
             <i class="bi bi-clipboard-check me-2"></i>Evaluación de la seguridad alimentaria
         </legend>
 
-        <!-- Bloque 1: Solo Adultos -->
         <div class="card mb-4">
             <div class="card-header text-white">
                 <h6 class="mb-0">
@@ -43,7 +42,6 @@
             </div>
         </div>
 
-        <!-- Bloque 2: Adultos y Menores -->
         <div class="card">
             <div class="card-header text-light d-flex justify-content-between align-items-center">
                 <h6 class="mb-0">
@@ -84,7 +82,6 @@
             </div>
         </div>
 
-        <!-- RESÚMENES (Solo se muestra uno) -->
         @php
         $puntosBloque1 = 0;
         $puntosBloque2 = 0;
@@ -272,7 +269,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelector(`input[name="${campo}"][value="0"]`)
     ]);
 
-    // 🔸 Función para revisar si el usuario respondió al menos una pregunta del bloque 2
     function bloque2Iniciado() {
         return camposBloque2.some(campo => {
             const si = document.querySelector(`input[name="${campo}"][value="1"]`);
@@ -281,7 +277,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 🔸 Función para actualizar los "required" dinámicamente
     function actualizarRequired() {
         const activar = bloque2Iniciado();
         camposBloque2.forEach(campo => {
@@ -296,14 +291,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 🔸 Escuchar cambios en cualquiera de los radios del bloque 2
     radiosBloque2.forEach(radio => {
         if (radio) {
             radio.addEventListener('change', actualizarRequired);
         }
     });
 
-    // 🔸 Al enviar el formulario, verificar si se respondió parcialmente el bloque 2
     const form = document.getElementById('estudioForm');
     form.addEventListener('submit', function (e) {
         const iniciado = bloque2Iniciado();

@@ -4,7 +4,7 @@
             <i class="bi bi-house-door-fill me-2"></i> Integrantes del Hogar
         </h5>
         @if(isset($estudio) && $estudio->id)
-        <button type="button" class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#createIntegranteModal">
+        <button type="button" class="btn btn-light btn-sm" id="btnAgregarIntegrante">
             <i class="bi bi-person-plus"></i> Agregar Integrante
         </button>
         @else
@@ -15,42 +15,59 @@
     </div>
 
     <div class="card-body">
-        @if(isset($estudio) && $estudio->id && $estudio->integrantesHogar->count())
+        @if(isset($estudio) && $estudio->id)
         <div class="table-responsive">
-            <table class="table table-sm table-bordered align-middle">
+            <table class="table table-sm table-bordered align-middle" id="tablaIntegrantes">
                 <thead class="table-light">
                     <tr>
-                        <th>Nombre completo</th>
-                        <th>Edad</th>
-                        <th>Parentesco</th>
-                        <th>Ingreso mensual</th>
-                        <th class="text-center">Acciones</th>
+                        <th style="width: 30%;">Integrante</th>
+                        <th style="width: 50%;">Ingreso Mensual</th>
+                        <th style="width: 20%;" class="text-center">Acciones</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="tbodyIntegrantes">
                     @php
                     $totalIngresos = 0;
                     $totalPersonas = 0;
                     @endphp
-                    @foreach($estudio->integrantesHogar as $integrante)
+
+                    @foreach($estudio->integrantesHogar->sortBy('integrante') as $integrante)
                     @php
                     $totalIngresos += $integrante->ingreso_mensual;
                     $totalPersonas++;
                     @endphp
-                    <tr>
-                        <td>{{ $integrante->nombres }} {{ $integrante->apellidos }}</td>
-                        <td>{{ $integrante->edad }} años</td>
-                        <td>{{ $integrante->parentesco->descripcion ?? 'N/A' }}</td>
-                        <td>${{ number_format($integrante->ingreso_mensual, 2) }}</td>
+                    <tr data-id="{{ $integrante->id }}" data-integrante="{{ $integrante->integrante }}">
+                        <td>
+                            <strong>
+                                Integrante {{ $integrante->integrante }}
+                                @if($integrante->integrante == 1)
+                                    <span class="badge bg-primary ms-2">Beneficiario</span>
+                                @endif
+                            </strong>
+                        </td>
+                        <td>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text">$</span>
+                                <input type="number" 
+                                    class="form-control ingreso-input" 
+                                    value="{{ $integrante->ingreso_mensual }}"
+                                    step="0.01" 
+                                    min="0"
+                                    data-id="{{ $integrante->id }}"
+                                    placeholder="0.00"
+                                    @if($integrante->integrante == 1) data-beneficiario="true" @endif>
+                            </div>
+                        </td>
                         <td class="text-center">
-                            <button type="button" class="btn btn-sm btn-warning"
-                                data-bs-toggle="modal" data-bs-target="#editIntegranteModal{{ $integrante->id }}">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            <button type="button" class="btn btn-sm btn-danger"
-                                data-bs-toggle="modal" data-bs-target="#deleteIntegranteModal{{ $integrante->id }}">
-                                <i class="bi bi-trash"></i>
-                            </button>
+                            @if($integrante->integrante == 1)
+                                <span class="text-muted small">
+                                    <i class="bi bi-lock"></i> No se puede eliminar
+                                </span>
+                            @else
+                                <button type="button" class="btn btn-sm btn-danger eliminar-integrante" data-id="{{ $integrante->id }}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            @endif
                         </td>
                     </tr>
                     @endforeach
@@ -60,30 +77,30 @@
 
         <!-- Sección de totales -->
         @php
-        $lineaCanasta = $totalPersonas > 0 ? $totalIngresos / $totalPersonas : 0;
+        $ingresoPerCapita = $totalPersonas > 0 ? $totalIngresos / $totalPersonas : 0;
         @endphp
         <div class="row mt-4">
             <div class="col-md-4">
                 <div class="card bg-light">
                     <div class="card-body text-center">
-                        <h6 class="card-title">Total de ingreso mensual en el hogar</h6>
-                        <p class="card-text h5 text-primary fw-bold">${{ number_format($totalIngresos, 2) }}</p>
+                        <h6 class="card-title">Total de ingreso mensual</h6>
+                        <p class="card-text h5 text-primary fw-bold" id="totalIngresos">${{ number_format($totalIngresos, 2) }}</p>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="card bg-light">
                     <div class="card-body text-center">
-                        <h6 class="card-title">Total de personas que viven en el hogar</h6>
-                        <p class="card-text h5 text-dark fw-bold">{{ $totalPersonas }}</p>
+                        <h6 class="card-title">Total de personas en el hogar</h6>
+                        <p class="card-text h5 text-dark fw-bold" id="totalPersonas">{{ $totalPersonas }}</p>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="card bg-light">
                     <div class="card-body text-center">
-                        <h6 class="card-title">Línea de canasta alimentaría del hogar</h6>
-                        <p class="card-text h5 text-success fw-bold">${{ number_format($lineaCanasta, 2) }}</p>
+                        <h6 class="card-title">Ingreso per cápita</h6>
+                        <p class="card-text h5 text-success fw-bold" id="ingresoPerCapita">${{ number_format($ingresoPerCapita, 2) }}</p>
                     </div>
                 </div>
             </div>
@@ -92,14 +109,12 @@
         <!-- Sección de Línea CONEVAL -->
         <div class="card mt-4">
             <div class="card-body">
-                <!-- Pregunta 1 -->
-                 @php
+                @php
                 $fechaFormateada = \Carbon\Carbon::parse($lineasConeval->first()->periodo)->locale('es')->translatedFormat('F Y');
                 @endphp
                 <label class="form-label fw-bold">
                     ¿El hogar se encuentra debajo de la línea del Bienestar según la corte de {{ $fechaFormateada }}, CONEVAL?
                 </label>
-                <!-- Campos ocultos para almacenar los valores -->
                 <input type="hidden" name="linea_coneval_id" id="linea_coneval_id" value="{{ $estudio->linea_coneval_id ?? '' }}">
                 <input type="hidden" name="coneval_active" id="coneval_active" value="{{ $estudio->coneval_active ?? '' }}">
 
@@ -154,7 +169,6 @@
 
                 <hr class="my-4">
 
-                <!-- Preguntas 2 y 3 en la misma fila -->
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="form-label fw-bold">
@@ -193,7 +207,6 @@
                     </div>
                 </div>
 
-                <!-- Sección de Calificación Simplificada -->
                 @if(isset($estudio) && $estudio->id)
                 <div class="card mt-4">
                     <div class="card-header bg-info text-white py-2">
@@ -277,45 +290,25 @@
         </div>
 
         @else
-        <p class="text-muted">
-            @if(isset($estudio) && $estudio->id)
-            No hay integrantes del hogar registrados.
-            @else
+        <p class="text-muted text-center py-3">
             El estudio debe ser guardado primero para gestionar integrantes del hogar.
-            @endif
         </p>
         @endif
     </div>
 </div>
 
-<style>
-    .linea-option:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    .linea-option.border-primary {
-        border-width: 2px !important;
-    }
-</style>
-
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        console.log('=== INICIANDO SCRIPT INTEGRANTES HOGAR ===');
+        console.log('=== INICIANDO SCRIPT INTEGRANTES DINÁMICOS ===');
 
-        // =============================================
-        // 0. INICIALIZACIÓN MEJORADA - SOLO UNA VEZ
-        // =============================================
         function inicializarConeval() {
             const lineaConevalIdForm = document.getElementById('linea_coneval_id');
             const conevalActiveForm = document.getElementById('coneval_active');
 
-            // Solo inicializar si los campos están vacíos
             if (lineaConevalIdForm && !lineaConevalIdForm.value) {
                 const estudioLineaId = '{{ $estudio->linea_coneval_id ?? "" }}';
                 if (estudioLineaId && estudioLineaId !== 'null') {
                     lineaConevalIdForm.value = estudioLineaId;
-                    console.log('linea_coneval_id_form inicializado:', estudioLineaId);
                 }
             }
 
@@ -323,28 +316,76 @@
                 const estudioActive = '{{ $estudio->coneval_active ?? "" }}';
                 if (estudioActive && estudioActive !== 'null') {
                     conevalActiveForm.value = estudioActive;
-                    console.log('coneval_active_form actualizado:', estudioActive);
                 }
             }
         }
 
-        // Llamar a la inicialización SOLO UNA VEZ al inicio
         inicializarConeval();
 
-        // =============================================
-        // 1. CRUD DE INTEGRANTES DEL HOGAR
-        // =============================================
-        const createForm = document.getElementById('createIntegranteForm');
-        if (createForm) {
-            createForm.addEventListener('submit', function(e) {
-                e.preventDefault();
+        document.getElementById('btnAgregarIntegrante')?.addEventListener('click', function() {
+            const tbody = document.getElementById('tbodyIntegrantes');
+            const filas = tbody.querySelectorAll('tr:not([data-nuevo])');
 
-                const formData = new FormData(this);
-                const submitBtn = this.querySelector('button[type="submit"]');
-                const originalText = submitBtn.innerHTML;
+            let maxIntegrante = 1;
+            filas.forEach(fila => {
+                const num = parseInt(fila.getAttribute('data-integrante'));
+                if (num > maxIntegrante) maxIntegrante = num;
+            });
+            const nuevoNumero = maxIntegrante + 1;
 
-                submitBtn.innerHTML = '<i class="bi bi-hourglass"></i> Guardando...';
-                submitBtn.disabled = true;
+            const nuevaFila = document.createElement('tr');
+            nuevaFila.setAttribute('data-integrante', nuevoNumero);
+            nuevaFila.setAttribute('data-nuevo', 'true');
+            nuevaFila.innerHTML = `
+            <td>
+                <strong>Integrante ${nuevoNumero}</strong>
+            </td>
+            <td>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text">$</span>
+                    <input type="number" 
+                           class="form-control ingreso-input-nuevo" 
+                           step="0.01" 
+                           min="0"
+                           placeholder="0.00">
+                </div>
+            </td>
+            <td class="text-center">
+                <button type="button" class="btn btn-sm btn-success guardar-nuevo">
+                    <i class="bi bi-check-lg"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-danger cancelar-nuevo">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </td>
+        `;
+
+            tbody.appendChild(nuevaFila);
+            nuevaFila.querySelector('.ingreso-input-nuevo').focus();
+        });
+
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.guardar-nuevo')) {
+                const fila = e.target.closest('tr');
+                const input = fila.querySelector('.ingreso-input-nuevo');
+                const ingreso = parseFloat(input.value) || 0;
+
+                if (ingreso < 0) {
+                    alert('El ingreso no puede ser negativo');
+                    return;
+                }
+
+                const integranteNum = parseInt(fila.getAttribute('data-integrante'));
+
+                const formData = new FormData();
+                formData.append('estudio_socioeconomico_id', '{{ $estudio->id }}');
+                formData.append('integrante', integranteNum);
+                formData.append('ingreso_mensual', ingreso);
+
+                const btn = e.target.closest('.guardar-nuevo');
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="bi bi-hourglass"></i>';
+                btn.disabled = true;
 
                 fetch('{{ route("integrantes-hogar.store") }}', {
                         method: 'POST',
@@ -357,230 +398,253 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            const modal = bootstrap.Modal.getInstance(document.getElementById('createIntegranteModal'));
-                            modal.hide();
                             location.reload();
                         } else {
                             alert(data.error || 'Error al guardar');
+                            btn.innerHTML = originalHtml;
+                            btn.disabled = false;
                         }
                     })
                     .catch(error => {
                         console.error('Error:', error);
-                        alert('Error al guardar el integrante');
-                    })
-                    .finally(() => {
-                        submitBtn.innerHTML = originalText;
-                        submitBtn.disabled = false;
+                        alert('Error al guardar el integrante. La página se recargará para mostrar los cambios.');
+                        location.reload();
                     });
-            });
-        }
+            }
+        });
 
-        // Editar integrante
-        document.querySelectorAll('.edit-integrantes-form').forEach(form => {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                const integranteId = this.getAttribute('data-id');
-                const formData = new FormData(this);
-                const submitBtn = this.querySelector('button[type="submit"]');
-                const originalText = submitBtn.innerHTML;
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.cancelar-nuevo')) {
+                const fila = e.target.closest('tr');
+                if (confirm('¿Cancelar la adición de este integrante?')) {
+                    fila.remove();
+                }
+            }
+        });
 
-                submitBtn.innerHTML = '<i class="bi bi-hourglass"></i> Actualizando...';
-                submitBtn.disabled = true;
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.guardar-ingreso')) {
+                const btn = e.target.closest('.guardar-ingreso');
+                const id = btn.getAttribute('data-id');
+                const fila = btn.closest('tr');
+                const input = fila.querySelector('.ingreso-input');
+                const ingreso = parseFloat(input.value) || 0;
 
-                fetch('{{ route("integrantes-hogar.update", "") }}/' + integranteId, {
+                if (ingreso < 0) {
+                    alert('El ingreso no puede ser negativo');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('ingreso_mensual', ingreso);
+                formData.append('_method', 'PUT');
+
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="bi bi-hourglass"></i>';
+                btn.disabled = true;
+
+                fetch('{{ route("integrantes-hogar.update", "") }}/' + id, {
                         method: 'POST',
                         headers: {
                             'X-CSRF-TOKEN': '{{ csrf_token() }}',
                             'Accept': 'application/json',
-                            'X-HTTP-Method-Override': 'PUT'
                         },
                         body: formData
                     })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Error en la respuesta del servidor: ' + response.status);
-                        }
-                        return response.json();
-                    })
+                    .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            const modal = bootstrap.Modal.getInstance(document.getElementById(`editIntegranteModal${integranteId}`));
-                            modal.hide();
-                            location.reload();
+                            actualizarTotales();
+                            btn.innerHTML = '<i class="bi bi-check-lg"></i>';
+                            setTimeout(() => {
+                                btn.innerHTML = originalHtml;
+                            }, 2000);
+                            setTimeout(() => {
+                                location.reload();
+                            }, 1000);
                         } else {
                             alert(data.error || 'Error al actualizar');
                         }
                     })
                     .catch(error => {
                         console.error('Error:', error);
-                        alert('Error al actualizar el integrante: ' + error.message);
+                        alert('Error al actualizar el ingreso');
                     })
                     .finally(() => {
-                        submitBtn.innerHTML = originalText;
-                        submitBtn.disabled = false;
+                        btn.disabled = false;
                     });
-            });
+            }
         });
 
-        // Eliminar integrante
-        document.querySelectorAll('.delete-integrantes-form').forEach(form => {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                const integranteId = this.getAttribute('data-id');
-                const submitBtn = this.querySelector('button[type="submit"]');
-                const originalText = submitBtn.innerHTML;
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.eliminar-integrante')) {
+                const btn = e.target.closest('.eliminar-integrante');
+                const id = btn.getAttribute('data-id');
+                const fila = btn.closest('tr');
+                const integranteNum = parseInt(fila.getAttribute('data-integrante'));
+                
+                if (integranteNum === 1) {
+                    alert('El Beneficiario Principal no puede ser eliminado.');
+                    return;
+                }
+                
+                if (!confirm('¿Eliminar este integrante del hogar?')) return;
 
-                submitBtn.innerHTML = '<i class="bi bi-hourglass"></i> Eliminando...';
-                submitBtn.disabled = true;
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="bi bi-hourglass"></i>';
+                btn.disabled = true;
 
-                fetch('{{ route("integrantes-hogar.destroy", "") }}/' + integranteId, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json',
-                            'X-HTTP-Method-Override': 'DELETE'
-                        }
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Error en la respuesta del servidor: ' + response.status);
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (data.success) {
-                            const modal = bootstrap.Modal.getInstance(document.getElementById(`deleteIntegranteModal${integranteId}`));
-                            modal.hide();
-                            location.reload();
-                        } else {
-                            alert(data.error || 'Error al eliminar');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('Error al eliminar el integrante: ' + error.message);
-                    })
-                    .finally(() => {
-                        submitBtn.innerHTML = originalText;
-                        submitBtn.disabled = false;
-                    });
-            });
+                fetch('{{ route("integrantes-hogar.destroy", "") }}/' + id, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                        'X-HTTP-Method-Override': 'DELETE'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert(data.error || 'Error al eliminar');
+                        btn.innerHTML = originalHtml;
+                        btn.disabled = false;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al eliminar el integrante');
+                    btn.innerHTML = originalHtml;
+                    btn.disabled = false;
+                });
+            }
         });
 
-        // =============================================
-        // 2. SINCRONIZACIÓN DE LAS 3 PREGUNTAS
-        // =============================================
+        function actualizarTotales() {
+            const filas = document.querySelectorAll('#tbodyIntegrantes tr:not([data-nuevo])');
+            let totalIngresos = 0;
+            let totalPersonas = 0;
 
-        // A. Sincronizar Servicio de Salud
-        const servicioSaludSelect = document.getElementById('servicio_salud_id');
-        const servicioSaludHidden = document.getElementById('servicio_salud_id_form');
-
-        if (servicioSaludSelect && servicioSaludHidden) {
-            // Solo sincronizar valor inicial si está vacío
-            if (!servicioSaludHidden.value && servicioSaludSelect.value) {
-                servicioSaludHidden.value = servicioSaludSelect.value;
-            }
-
-            servicioSaludSelect.addEventListener('change', function() {
-                servicioSaludHidden.value = this.value;
-                console.log('Servicio salud actualizado:', this.value);
+            filas.forEach(fila => {
+                const input = fila.querySelector('.ingreso-input');
+                if (input) {
+                    const ingreso = parseFloat(input.value) || 0;
+                    totalIngresos += ingreso;
+                    totalPersonas++;
+                }
             });
+
+            const ingresoPerCapita = totalPersonas > 0 ? totalIngresos / totalPersonas : 0;
+
+            const totalIngresosEl = document.getElementById('totalIngresos');
+            const totalPersonasEl = document.getElementById('totalPersonas');
+            const ingresoPerCapitaEl = document.getElementById('ingresoPerCapita');
+
+            if (totalIngresosEl) {
+                totalIngresosEl.textContent = '$' + totalIngresos.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            }
+            if (totalPersonasEl) {
+                totalPersonasEl.textContent = totalPersonas;
+            }
+            if (ingresoPerCapitaEl) {
+                ingresoPerCapitaEl.textContent = '$' + ingresoPerCapita.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            }
         }
 
-        // B. Sincronizar Escolaridad
-        const escolaridadSelect = document.getElementById('escolaridad_id');
-        const escolaridadHidden = document.getElementById('escolaridad_id_form');
-
-        if (escolaridadSelect && escolaridadHidden) {
-            // Solo sincronizar valor inicial si está vacío
-            if (!escolaridadHidden.value && escolaridadSelect.value) {
-                escolaridadHidden.value = escolaridadSelect.value;
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const target = e.target;
+                if (target.classList.contains('ingreso-input-nuevo')) {
+                    const fila = target.closest('tr');
+                    const btn = fila.querySelector('.guardar-nuevo');
+                    if (btn) btn.click();
+                } else if (target.classList.contains('ingreso-input')) {
+                    const fila = target.closest('tr');
+                    const btn = fila.querySelector('.guardar-ingreso');
+                    if (btn) btn.click();
+                }
             }
+        });
 
-            escolaridadSelect.addEventListener('change', function() {
-                escolaridadHidden.value = this.value;
-                console.log('Escolaridad actualizada:', this.value);
-            });
-        }
-
-        // C. Sincronizar CONEVAL
         const conevalRadios = document.querySelectorAll('.coneval-radio');
         const lineaConevalIdForm = document.getElementById('linea_coneval_id');
         const conevalActiveForm = document.getElementById('coneval_active');
 
-        console.log('CONEVAL - Estado inicial campos:', {
-            lineaValue: lineaConevalIdForm?.value,
-            activeValue: conevalActiveForm?.value
-        });
-
-        // Event listeners para CONEVAL
         conevalRadios.forEach(radio => {
             radio.addEventListener('change', function() {
                 if (this.checked) {
                     const lineaId = this.getAttribute('data-linea-id');
                     const active = this.getAttribute('data-active');
 
-                    console.log('CONEVAL - Radio cambiado:', {
-                        linea_id: lineaId,
-                        active: active,
-                        radio_id: this.id
-                    });
-
-                    // ACTUALIZAR CAMPOS DEL FORMULARIO PRINCIPAL
                     if (lineaConevalIdForm) {
                         lineaConevalIdForm.value = lineaId;
-                        console.log('linea_coneval_id_form actualizado:', lineaId);
                     }
                     if (conevalActiveForm) {
                         conevalActiveForm.value = active;
-                        console.log('coneval_active_form actualizado:', active);
                     }
                 }
             });
         });
 
-        // =============================================
-        // 3. VERIFICACIÓN DE ENVÍO DE FORMULARIO
-        // =============================================
-        const formPrincipal = document.getElementById('estudioForm');
-        if (formPrincipal) {
-            formPrincipal.addEventListener('submit', function(e) {
-                // Obtener valores ACTUALES en el momento del envío
-                const lineaId = document.getElementById('linea_coneval_id_form')?.value;
-                const active = document.getElementById('coneval_active_form')?.value;
-                const servicioSalud = document.getElementById('servicio_salud_id_form')?.value;
-                const escolaridad = document.getElementById('escolaridad_id_form')?.value;
-
-                // Verificar específicamente CONEVAL
-                if (!lineaId || !active) {
-                    console.warn('⚠️ ADVERTENCIA: Campos CONEVAL incompletos');
-                } else {
-                    console.log('✅ CONEVAL completo - Se guardará correctamente');
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('ingreso-input')) {
+                const input = e.target;
+                const id = input.getAttribute('data-id');
+                const fila = input.closest('tr');
+                const ingreso = parseFloat(input.value) || 0;
+                
+                if (ingreso < 0) {
+                    alert('El ingreso no puede ser negativo');
+                    input.value = 0;
+                    return;
                 }
-            });
-        }
 
-        // =============================================
-        // 4. VERIFICACIÓN ÚNICA AL CARGAR
-        // =============================================
-        setTimeout(() => {
-            console.log(' === VERIFICACIÓN INICIAL DE CAMPOS ===');
+                const tdAcciones = fila.querySelector('td:last-child');
+                const loadingIndicator = document.createElement('span');
+                loadingIndicator.className = 'text-muted small ms-2';
+                loadingIndicator.id = 'loading-indicator-' + id;
+                loadingIndicator.innerHTML = '<i class="bi bi-hourglass"></i> Guardando...';
+                tdAcciones.appendChild(loadingIndicator);
 
-            const verificarCampo = (id, nombre) => {
-                const elemento = document.getElementById(id);
-                if (elemento) {
-                    console.log(` ${nombre}:`, elemento.value || '(vacío)');
-                    return elemento.value;
-                }
-                return null;
-            };
+                const formData = new FormData();
+                formData.append('ingreso_mensual', ingreso);
+                formData.append('_method', 'PUT');
 
-            console.log(' linea_coneval_id:', verificarCampo('linea_coneval_id_form', 'linea_coneval_id'));
-            console.log(' coneval_active:', verificarCampo('coneval_active_form', 'coneval_active'));
-            console.log(' servicio_salud_id:', verificarCampo('servicio_salud_id_form', 'servicio_salud_id'));
-            console.log(' escolaridad_id:', verificarCampo('escolaridad_id_form', 'escolaridad_id'));
-        }, 500);
+                fetch('{{ route("integrantes-hogar.update", "") }}/' + id, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                    },
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        const indicator = document.getElementById('loading-indicator-' + id);
+                        if (indicator) indicator.remove();
+                        alert(data.error || 'Error al actualizar');
+                        input.classList.add('is-invalid');
+                        setTimeout(() => {
+                            input.classList.remove('is-invalid');
+                        }, 2000);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    const indicator = document.getElementById('loading-indicator-' + id);
+                    if (indicator) indicator.remove();
+                    alert('Error al actualizar el ingreso');
+                    input.classList.add('is-invalid');
+                    setTimeout(() => {
+                        input.classList.remove('is-invalid');
+                    }, 2000);
+                });
+            }
+        });
 
-        console.log('=== SCRIPT INTEGRANTES HOGAR CARGADO ===');
     });
 </script>

@@ -18,34 +18,6 @@
                     {{-- Contenedor para errores generales --}}
                     <div id="modal-general-error" class="alert alert-danger d-none mb-3"></div>
 
-                    {{-- Datos Personales --}}
-                    <fieldset class="border rounded p-3 mb-3">
-                        <legend class="float-none w-auto px-2">Datos Personales</legend>
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label for="create_nombres" class="form-label">Nombres *</label>
-                                <input type="text" class="form-control uppercase-no-tildes" id="create_nombres" name="nombres"
-                                    pattern="[A-ZÑ\s\.]+"
-                                    oninput="this.value = this.value.toUpperCase().replace(/[^A-ZÑ\s\.]/g, '')"
-                                    required>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="create_primer_apellido" class="form-label">Primer Apellido *</label>
-                                <input type="text" class="form-control uppercase-no-tildes" id="create_primer_apellido" name="primer_apellido"
-                                    pattern="[A-ZÑ\s\.]+"
-                                    oninput="this.value = this.value.toUpperCase().replace(/[^A-ZÑ\s\.]/g, '')"
-                                    required>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="create_segundo_apellido" class="form-label">Segundo Apellido</label>
-                                <input type="text" class="form-control uppercase-no-tildes" id="create_segundo_apellido" name="segundo_apellido"
-                                    pattern="[A-ZÑ\s\.]+"
-                                    oninput="this.value = this.value.toUpperCase().replace(/[^A-ZÑ\s\.]/g, '')">
-                            </div>
-                            <input type="hidden" id="create_apellidos" name="apellidos" value="">
-                        </div>
-                    </fieldset>
-
                     {{-- Identificación --}}
                     <fieldset class="border rounded p-3 mb-3">
                         <legend class="float-none w-auto px-2">Identificación</legend>
@@ -94,6 +66,34 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    </fieldset>
+
+                    {{-- Datos Personales --}}
+                    <fieldset class="border rounded p-3 mb-3">
+                        <legend class="float-none w-auto px-2">Datos Personales</legend>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="create_nombres" class="form-label">Nombres *</label>
+                                <input type="text" class="form-control uppercase-no-tildes" id="create_nombres" name="nombres"
+                                    pattern="[A-ZÑ\s\.]+"
+                                    oninput="this.value = this.value.toUpperCase().replace(/[^A-ZÑ\s\.]/g, '')"
+                                    required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="create_primer_apellido" class="form-label">Primer Apellido *</label>
+                                <input type="text" class="form-control uppercase-no-tildes" id="create_primer_apellido" name="primer_apellido"
+                                    pattern="[A-ZÑ\s\.]+"
+                                    oninput="this.value = this.value.toUpperCase().replace(/[^A-ZÑ\s\.]/g, '')"
+                                    required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="create_segundo_apellido" class="form-label">Segundo Apellido</label>
+                                <input type="text" class="form-control uppercase-no-tildes" id="create_segundo_apellido" name="segundo_apellido"
+                                    pattern="[A-ZÑ\s\.]+"
+                                    oninput="this.value = this.value.toUpperCase().replace(/[^A-ZÑ\s\.]/g, '')">
+                            </div>
+                            <input type="hidden" id="create_apellidos" name="apellidos" value="">
                         </div>
                     </fieldset>
 
@@ -254,17 +254,19 @@
 
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
-                                <label for="create_estado_viv_id" class="form-label">Estado de residencia</label>
-                                <select class="form-select" id="create_estado_viv_id" name="estado_viv_id" required>
-                                    <option value="" disabled>Seleccione un estado</option>
-                                    @foreach($estados as $estado)
-                                    <option value="{{ $estado->id_estado }}"
-                                        {{ $estado->id_estado == 31 ? 'selected' : '' }}>
-                                        {{ $estado->nombre }}
-                                    </option>
-                                    @endforeach
-                                </select>
-                            </div>
+                            <label for="create_estado_viv_id" class="form-label">Estado de residencia</label>
+                            <select class="form-select bg-light" id="create_estado_viv_id" name="estado_viv_id" 
+                                    required style="pointer-events: none; cursor: default;">
+                                <option value="31" selected>
+                                    Yucatán
+                                </option>
+                            </select>
+                            <input type="hidden" name="estado_viv_id" value="31">
+                            <small class="text-muted">
+                                <i class="bi bi-info-circle"></i> 
+                                Estado fijo: Yucatán
+                            </small>
+                        </div>
                             <div class="col-md-6">
                                 <label for="create_municipio_id" class="form-label">Municipio</label>
                                 <select class="form-select" id="create_municipio_id" name="municipio_id" required>
@@ -335,19 +337,17 @@
 </div>
 @endcan
 
-<!-- Modal de Opciones para Estudio Socioeconómico -->
 <div class="modal fade" id="estudioSocioeconomicoModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-md">
         <div class="modal-content shadow-lg">
-            <div class="modal-header bg-primary text-white">
+            <div class="modal-header bg-success text-white">
                 <h5 class="modal-title">
-                    <i class="bi bi-clipboard-check me-2"></i> Opciones de Estudio
+                    <i class="bi bi-clipboard-check me-2"></i> Estudio Socioeconomico
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             
             <div class="modal-body text-center">
-                <!-- Información del beneficiario -->
                 <div class="alert alert-info mb-4">
                     <i class="bi bi-person-check me-2"></i>
                     <strong id="beneficiario-info"></strong>
@@ -363,9 +363,9 @@
                                 <div class="mb-2">
                                     <i class="bi bi-plus-circle display-5 text-primary"></i>
                                 </div>
-                                <h6 class="card-title mb-1">Crear Nuevo</h6>
+                                <h6 class="card-title mb-1">Crear</h6>
                                 <p class="card-text small text-muted mb-0">
-                                    Estudio desde cero
+                                    Nuevo estudio socioeconomico
                                 </p>
                             </div>
                         </div>
@@ -414,9 +414,6 @@
                 
                 <button type="button" class="btn btn-success d-none" id="btn-confirmar-vinculacion" disabled>
                     <i class="bi bi-link-45deg"></i> Confirmar Vinculación
-                </button>
-                <button type="button" class="btn btn-primary d-none" id="btn-crear-estudio">
-                    <i class="bi bi-plus-circle"></i> Crear Estudio
                 </button>
                 
             </div>
@@ -525,7 +522,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     $('#createBeneficiarioModal').on('shown.bs.modal', function() {
         
-        // Inicializar Select2 para municipio
         $(createMunicipioSelect).select2({
             placeholder: "Seleccione o busque un municipio",
             allowClear: true,
@@ -534,18 +530,15 @@ document.addEventListener('DOMContentLoaded', function() {
             dropdownParent: $('#createBeneficiarioModal')
         });
 
-        // Inicializar Select2 para estado
-        $(createEstadoSelect).select2({
-            placeholder: "Seleccione un estado",
-            allowClear: false,
+        $(createLocalidadSelect).select2({
+            placeholder: "Busque o seleccione una localidad",
+            allowClear: true,
             language: "es",
             width: '100%',
             dropdownParent: $('#createBeneficiarioModal')
         });
-
-        // Inicializar Select2 para localidad
-        $(createLocalidadSelect).select2({
-            placeholder: "Busque o seleccione una localidad",
+        $('#create_estado_id').select2({
+            placeholder: "Seleccione un estado de nacimiento",
             allowClear: true,
             language: "es",
             width: '100%',
@@ -555,7 +548,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const estadoDefault = '31';
         filtrarMunicipiosCreacion(estadoDefault);
         
-        // Inicializar modo localidad con el municipio por defecto (Mérida)
         toggleModoLocalidadCreacion('2343');
     });
 
@@ -611,12 +603,10 @@ document.addEventListener('DOMContentLoaded', function() {
             createLocalidadSelect.disabled = true;
             createLocalidadHint.textContent = 'Escriba el nombre de la localidad';
             
-            // Transferir valor si es necesario
             if (createLocalidadSelect.value && !createLocalidadInput.value) {
                 createLocalidadInput.value = $(createLocalidadSelect).select2('data')[0]?.text || '';
             }
             
-            // Enfocar el input automáticamente
             setTimeout(() => {
                 createLocalidadInput.focus();
             }, 100);
@@ -650,7 +640,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 $(createLocalidadSelect).prop('disabled', false).trigger('change');
             })
             .catch(error => {
-                console.error('❌ Error cargando localidades (creación):', error);
+                console.error('Error cargando localidades (creación):', error);
                 $(createLocalidadSelect).empty().append('<option value="">Error cargando localidades</option>');
             });
     }

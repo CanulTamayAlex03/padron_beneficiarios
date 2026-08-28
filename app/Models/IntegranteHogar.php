@@ -14,24 +14,18 @@ class IntegranteHogar extends Model
 
     protected $fillable = [
         'estudio_socioeconomico_id',
-        'nombres',
-        'apellidos',
-        'edad',
-        'parentesco_id',
+        'integrante',
         'ingreso_mensual'
     ];
 
     protected $casts = [
         'ingreso_mensual' => 'decimal:2',
+        'integrante' => 'integer'
     ];
 
     public function estudioSocioeconomico(): BelongsTo
     {
         return $this->belongsTo(EstudioSocioeconomico::class, 'estudio_socioeconomico_id');
     }
-
-    public function parentesco(): BelongsTo
-    {
-        return $this->belongsTo(Parentesco::class, 'parentesco_id');
-    }
+    
 }

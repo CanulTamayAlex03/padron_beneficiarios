@@ -17,7 +17,8 @@ class EstudioSocioeconomico extends Model
         'folio',
         'fecha_solicitud',
         'beneficiario_id',
-        'region_id',
+        'municipio_id',
+        'region',
         'solicitud_id',
         'programa_id',
         'tipo_programa_id',
@@ -34,21 +35,18 @@ class EstudioSocioeconomico extends Model
         'electricidad',
         'cuartos_dormir',
         'razon_mayor',
-
         'preocupa_sin_alimentos',
         'alimentos_no_alcanzaron',
         'dieta_poco_variada_adultos',
         'adultos_comieron_menos',
         'adultos_hambre_sin_comer',
         'adultos_dejaron_comer_dia',
-
         'menores_dieta_poco_variada',
         'menores_comieron_menos',
         'menores_hambre_sin_comer',
         'menores_sin_comer_dia',
         'menores_sin_alimentos_saludables',
         'menores_dieta_alimentos_baratos',
-
         'res_estudio_1',
         'res_estudio_2',
         'res_estudio_3',
@@ -63,14 +61,14 @@ class EstudioSocioeconomico extends Model
         'razon_mayor' => 'boolean',
         'cuartos_dormir' => 'integer',
         'fecha_solicitud' => 'date',
-
+        'municipio_id' => 'integer',
+        'region' => 'integer',
         'preocupa_sin_alimentos' => 'boolean',
         'alimentos_no_alcanzaron' => 'boolean',
         'dieta_poco_variada_adultos' => 'boolean',
         'adultos_comieron_menos' => 'boolean',
         'adultos_hambre_sin_comer' => 'boolean',
         'adultos_dejaron_comer_dia' => 'boolean',
-
         'menores_dieta_poco_variada' => 'boolean',
         'menores_comieron_menos' => 'boolean',
         'menores_hambre_sin_comer' => 'boolean',
@@ -89,9 +87,9 @@ class EstudioSocioeconomico extends Model
         return $this->belongsTo(Beneficiario::class);
     }
 
-    public function region(): BelongsTo
+    public function municipio(): BelongsTo
     {
-        return $this->belongsTo(Region::class);
+        return $this->belongsTo(Municipio::class, 'municipio_id');
     }
 
     public function solicitud(): BelongsTo
@@ -123,8 +121,6 @@ class EstudioSocioeconomico extends Model
     {
         return $this->belongsTo(Escolaridad::class, 'escolaridad_id');
     }
-
-
 
     public function beneficiariosVinculados()
     {

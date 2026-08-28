@@ -104,8 +104,8 @@
                                 <tr>
                                     <th>ID</th>
                                     <th>Nombre completo</th>
-                                    <th>CURP</th>
-                                    <th>Fecha Registro</th>
+                                    <th>Región y Municipio</th>
+                                    <th>Último estudio</th>
                                     <th>Programa(s)</th> 
                                     <th>Estudios</th>
                                     <th>Acciones</th>
@@ -115,6 +115,10 @@
                                 @forelse($beneficiarios as $beneficiario)
 
                                 @php
+
+                                $ultimoEstudio = $beneficiario->ultimo_estudio_fecha ?? $beneficiario->getUltimoEstudioFecha();
+                                $fechaUltimoEstudio = $ultimoEstudio ? $ultimoEstudio->format('d/m/Y') : 'Sin estudios';
+
                                 $estudiosPropios = $beneficiario->estudiosSocioeconomicos->count();
                                 $estudiosVinculados = $beneficiario->estudiosVinculados->count();
                                 $cantidadEstudios = $estudiosPropios + $estudiosVinculados;
@@ -172,11 +176,18 @@
                                             data-updated="{{ $beneficiario->updated_at }}"
                                             title="Click para ver detalles">
                                             {{ $beneficiario->nombres }} {{ $beneficiario->primer_apellido }} {{ $beneficiario->segundo_apellido }}
-                                        </span>
+                                        </span><br>
+                                        <small><span>{{ $beneficiario->curp }}</span></small>
                                     </td>
-                                    <td>{{ $beneficiario->curp }}</td>
-                                    <td>{{ $beneficiario->created_at->format('d/m/Y') }}</td>
+                                    <td>{{ $beneficiario->municipio->region }} - {{ $beneficiario->municipio->descripcion }}</td>
                                     <td>
+                                            @if($ultimoEstudio)
+                                                <small><span>{{ $fechaUltimoEstudio }}</span></small>
+                                            @else
+                                                <small><span>Sin estudios</span></small>
+                                            @endif
+                                        </td>
+                                        <td>
                                         @php
                                             $programasNombres = [];
                                             foreach ($beneficiario->estudiosSocioeconomicos as $estudio) {

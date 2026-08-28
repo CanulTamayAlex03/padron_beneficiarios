@@ -12,7 +12,6 @@ use App\Http\Controllers\IntegranteHogarController;
 use App\Http\Controllers\LineaConevalController;
 use App\Http\Controllers\VinculacionEstudioController;
 
-// ================== LOGIN / LOGOUT ==================
 Route::get('/', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
@@ -66,6 +65,9 @@ Route::middleware('auth')->group(function () {
     Route::get('estudios', [EstudioSocioeconomicoController::class, 'index'])->name('estudios.index');
     Route::get('estudios/create/{beneficiario}', [EstudioSocioeconomicoController::class, 'create'])->name('estudios.create');
     Route::post('estudios', [EstudioSocioeconomicoController::class, 'store'])->name('estudios.store');
+
+    Route::get('/estudios/check-folio', [EstudioSocioeconomicoController::class, 'checkFolio'])
+    ->name('estudios.check-folio');
 
     // Ruta para editar un estudio específico junto con el beneficiario
     Route::get('beneficiarios/{beneficiario}/estudios/{estudio}/editar', [EstudioSocioeconomicoController::class, 'editarCompleto'])

@@ -120,7 +120,6 @@
         `;
                 container.prepend(wrapper.firstElementChild);
 
-                // Auto-dismiss después de 5s
                 setTimeout(() => {
                     const alertEl = container.querySelector('.alert');
                     if (alertEl) {
@@ -129,13 +128,11 @@
                 }, 5000);
             }
 
-            /* ---------- Inicializar tooltips (Bootstrap 5) ---------- */
             (function initTooltips() {
                 const triggers = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
                 triggers.forEach(el => new bootstrap.Tooltip(el));
             })();
 
-            /* ---------- VER detalles (fetch /{id}) ---------- */
             document.addEventListener('click', function(e) {
                 const btn = e.target.closest('.view-btn');
                 if (!btn) return;
@@ -155,14 +152,12 @@
                     .then(data => {
                         const d = data.data || data;
 
-                        // Datos básicos
                         document.getElementById('view-id').textContent = d.id ?? '';
                         document.getElementById('view-nombres').textContent = d.nombres ?? '';
                         document.getElementById('view-primer_apellido').textContent = d.primer_apellido ?? '';
                         document.getElementById('view-segundo_apellido').textContent = d.segundo_apellido ?? '';
                         document.getElementById('view-curp').textContent = d.curp ?? '';
 
-                        // Fecha de nacimiento formateada
                         if (d.fecha_nac) {
                             const fechaNac = new Date(d.fecha_nac);
                             const fechaAjustada = new Date(fechaNac.getTime() + fechaNac.getTimezoneOffset() * 60000);
@@ -212,7 +207,6 @@
                 }
             });
 
-            /* ---------- EDITAR: abrir modal y cargar datos (/id/edit) ---------- */
             document.addEventListener('click', function(e) {
                 const btn = e.target.closest('.edit-btn');
                 if (!btn) return;
@@ -220,7 +214,6 @@
                 if (!id) return;
                 console.log('Editando beneficiario ID:', id);
 
-                // Mostrar loading temporal si existen campos
                 const fillLoading = () => {
                     if (document.getElementById('edit_nombres')) document.getElementById('edit_nombres').value = 'Cargando...';
                     if (document.getElementById('edit_apellidos')) document.getElementById('edit_apellidos').value = 'Cargando...';
@@ -269,11 +262,9 @@
                         if (document.getElementById('edit_afromexicano')) document.getElementById('edit_afromexicano').checked = !!d.afromexicano;
 
 
-                        // Establecer action del formulario de edición
                         const editForm = document.getElementById('editBeneficiarioForm');
                         if (editForm) editForm.action = `${baseUrl}/${id}`;
 
-                        // Si el modal no se abrió automáticamente, abrirlo
                         const editModalEl = document.getElementById('editBeneficiarioModal');
                         if (editModalEl) {
                             const modal = bootstrap.Modal.getOrCreateInstance(editModalEl);
@@ -286,7 +277,6 @@
                     });
             });
 
-            /* ---------- ELIMINAR: confirmación y envío ---------- */
             document.addEventListener('click', function(e) {
                 const btn = e.target.closest('.delete-btn');
                 if (!btn) return;
@@ -297,16 +287,13 @@
 
                 if (!id) return;
 
-                // Configurar el modal de confirmación
                 document.getElementById('deleteBeneficiarioName').textContent = `${nombres} ${apellidos}`;
                 document.getElementById('deleteForm').action = `${baseUrl}/${id}`;
 
-                // Mostrar el modal
                 const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
                 deleteModal.show();
             });
 
-            // Manejar el envío del formulario de eliminación
             const deleteForm = document.getElementById('deleteForm');
             if (deleteForm) {
                 deleteForm.addEventListener('submit', function(e) {
@@ -333,7 +320,6 @@
                                 const msg = result.data && result.data.message ? result.data.message : 'Beneficiario eliminado correctamente.';
                                 showAlert(msg, 'success');
 
-                                // Recargar la página después de un breve delay
                                 setTimeout(() => window.location.reload(), 900);
                             } else {
                                 showAlert(result.messages || ['Error al eliminar beneficiario'], 'danger');
@@ -359,9 +345,7 @@
                     };
                 }
 
-                // 422 -> validación
                 if (response.status === 422 && payload && payload.errors) {
-                    // convertir errors a array
                     const messages = [];
                     Object.values(payload.errors).forEach(arr => messages.push(...arr));
                     return {
@@ -371,7 +355,6 @@
                     };
                 }
 
-                // Otros errores con mensaje
                 const message = payload && (payload.message || payload.error) ? (payload.message || payload.error) : (`Error ${response.status}`);
                 return {
                     ok: false,
@@ -384,37 +367,30 @@
             const createForm = document.getElementById('createBeneficiarioForm');
             if (createForm) {
                 createForm.addEventListener('submit', function(e) {
-                    // Validar CURP antes de enviar
                     const curpInput = document.getElementById('create_curp');
                     const curpConfirmInput = document.getElementById('create_curp_confirm');
                     
                     const curp = curpInput.value.trim();
                     const curpConfirm = curpConfirmInput.value.trim();
                     
-                    // Si ambos están vacíos, permitir envío
                     if (curp === '' && curpConfirm === '') {
-                        // Continuar con el envío
                     } 
-                    // Si solo uno está completado, prevenir envío
                     else if ((curp === '' && curpConfirm !== '') || (curp !== '' && curpConfirm === '')) {
                         e.preventDefault();
                         showAlert('Debe completar ambos campos de CURP o dejarlos vacíos', 'danger');
                         return;
                     }
-                    // Si no coinciden, prevenir envío
                     else if (curp !== curpConfirm) {
                         e.preventDefault();
                         showAlert('Las CURP no coinciden', 'danger');
                         return;
                     }
-                    // Si la CURP no tiene 18 caracteres, prevenir envío
                     else if (curp.length !== 18) {
                         e.preventDefault();
                         showAlert('La CURP debe tener exactamente 18 caracteres', 'danger');
                         return;
                     }
                     
-                    // Si pasa todas las validaciones, continuar con el envío AJAX
                     console.log('Enviando formulario de creación (AJAX)');
                     
                     const formData = new FormData(createForm);

@@ -156,7 +156,7 @@
 @push('scripts')
 <script>
     $(document).ready(function() {
-        console.log('✅ Script de roles cargado - MODO DEBUG EXTREMO');
+        console.log('Script de roles cargado - MODO DEBUG EXTREMO');
 
         // Debug: Verificar que los elementos existen
         console.log('Botones editar-rol encontrados:', $('.editar-rol').length);
@@ -166,13 +166,13 @@
         // Mostrar modal de edición con AJAX
         $(document).on('click', '.editar-rol', function() {
             const id = $(this).data('id');
-            console.log('🟡 CLICK DETECTADO - Editando rol ID:', id);
-            console.log('🟡 Texto del botón:', $(this).text());
+            console.log('CLICK DETECTADO - Editando rol ID:', id);
+            console.log('Texto del botón:', $(this).text());
             loadRoleData(id);
         });
 
         function loadRoleData(id) {
-            console.log('🟡 INICIANDO loadRoleData con ID:', id);
+            console.log('INICIANDO loadRoleData con ID:', id);
 
             // Mostrar spinner de carga
             $('#permisosContainer').html(`
@@ -184,12 +184,12 @@
             </div>
         `);
 
-            console.log('🟡 Spinner mostrado, abriendo modal...');
+            console.log('Spinner mostrado, abriendo modal...');
 
             // Mostrar el modal PRIMERO
             $('#editarRolModal').modal('show');
 
-            console.log('🟡 Modal mostrado, haciendo AJAX...');
+            console.log('Modal mostrado, haciendo AJAX...');
 
             // Hacer petición AJAX para obtener los datos
             $.ajax({
@@ -197,21 +197,21 @@
                 type: 'GET',
                 dataType: 'json',
                 beforeSend: function() {
-                    console.log('🟡 AJAX beforeSend - Petición enviada');
+                    console.log('AJAX beforeSend - Petición enviada');
                 },
                 success: function(response) {
-                    console.log('✅ AJAX SUCCESS - Datos recibidos:', response);
-                    console.log('✅ Rol name:', response.rol.name);
-                    console.log('✅ Permisos del rol:', response.rol.permissions.length);
-                    console.log('✅ Todos los permisos:', response.permisos.length);
+                    console.log('AJAX SUCCESS - Datos recibidos:', response);
+                    console.log('Rol name:', response.rol.name);
+                    console.log('Permisos del rol:', response.rol.permissions.length);
+                    console.log('Todos los permisos:', response.permisos.length);
 
                     if (response.rol) {
                         $('#edit_rol_id').val(response.rol.id);
                         $('#edit_nombre').val(response.rol.name);
 
-                        // ✅ CORRECCIÓN IMPORTANTE: Usar la ruta correcta
+                        // CORRECCIÓN IMPORTANTE: Usar la ruta correcta
                         $('#editarRolForm').attr('action', '/roles/' + response.rol.id);
-                        console.log('✅ Form action actualizado:', $('#editarRolForm').attr('action'));
+                        console.log('Form action actualizado:', $('#editarRolForm').attr('action'));
 
                         // Construir los checkboxes de permisos
                         let permissionsHtml = '';
@@ -243,15 +243,15 @@
                             permissionsHtml = '<div class="col-12 text-center text-muted py-3">No hay permisos disponibles</div>';
                         }
 
-                        console.log('🟡 Insertando HTML en permisosContainer...');
+                        console.log('Insertando HTML en permisosContainer...');
                         $('#permisosContainer').html(permissionsHtml);
-                        console.log('✅ HTML insertado correctamente');
+                        console.log('HTML insertado correctamente');
                     }
                 },
                 error: function(xhr, status, error) {
-                    console.error('❌ AJAX ERROR:', xhr.status, xhr.statusText);
-                    console.error('❌ Error:', error);
-                    console.error('❌ Response:', xhr.responseText);
+                    console.error('AJAX ERROR:', xhr.status, xhr.statusText);
+                    console.error('Error:', error);
+                    console.error('Response:', xhr.responseText);
 
                     $('#permisosContainer').html(`
                     <div class="col-12 text-center text-danger py-3">
@@ -262,22 +262,22 @@
                 `);
                 },
                 complete: function() {
-                    console.log('🟡 AJAX complete - Petición finalizada');
+                    console.log('AJAX complete - Petición finalizada');
                 }
             });
         }
 
         // Eventos del modal para debugging
         $('#editarRolModal').on('show.bs.modal', function() {
-            console.log('🟡 Modal EVENT: show.bs.modal');
+            console.log('Modal EVENT: show.bs.modal');
         });
 
         $('#editarRolModal').on('shown.bs.modal', function() {
-            console.log('✅ Modal EVENT: shown.bs.modal - Completamente visible');
+            console.log('Modal EVENT: shown.bs.modal - Completamente visible');
         });
 
         $('#editarRolModal').on('hidden.bs.modal', function() {
-            console.log('🟡 Modal EVENT: hidden.bs.modal - Cerrado');
+            console.log('Modal EVENT: hidden.bs.modal - Cerrado');
             $('#permisosContainer').html(`
             <div class="col-12 text-center py-3">
                 <div class="spinner-border text-primary" role="status">
@@ -287,13 +287,12 @@
         `);
         });
 
-        // Debug: Probar manualmente desde la consola
         window.debugLoadRole = function(id) {
-            console.log('🟡 DEBUG MANUAL - Cargando rol ID:', id);
+            console.log('DEBUG MANUAL - Cargando rol ID:', id);
             loadRoleData(id);
         };
 
-        console.log('✅ Todos los eventos registrados - Script listo');
+        console.log('Todos los eventos registrados - Script listo');
     });
 </script>
 @endpush

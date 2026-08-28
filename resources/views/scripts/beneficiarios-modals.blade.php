@@ -444,26 +444,23 @@
             });
         }
 
-        /* ---------- Función mejorada para mostrar modal de estudio ---------- */
         window.mostrarModalEstudioSocioeconomico = function(beneficiarioData) {
             console.log(' Mostrando modal de opciones para:', beneficiarioData);
-        
+            
             if (!beneficiarioData || !beneficiarioData.id) {
                 console.error('Datos del beneficiario inválidos:', beneficiarioData);
                 window.showAlert('Error: No se pudieron obtener los datos del beneficiario', 'warning');
                 setTimeout(() => window.location.reload(), 1500);
                 return;
             }
-        
-            // Usar la función GLOBAL que ya existe en el otro script
+            
             if (typeof mostrarOpcionesEstudio === 'function') {
                 const nombreCompleto = `${beneficiarioData.nombres || ''} ${beneficiarioData.primer_apellido || ''} ${beneficiarioData.segundo_apellido || ''}`.trim();
                 const curpInfo = beneficiarioData.curp ? `(CURP: ${beneficiarioData.curp})` : '';
 
-                mostrarOpcionesEstudio(beneficiarioData.id, `${nombreCompleto} ${curpInfo}`);
+                mostrarOpcionesEstudio(beneficiarioData.id, `${nombreCompleto} ${curpInfo}`, true);
             } else {
                 console.error('La función mostrarOpcionesEstudio no está disponible');
-                // Fallback: redirigir directamente a crear estudio
                 window.location.href = `/estudios/create/${beneficiarioData.id}`;
             }
         };

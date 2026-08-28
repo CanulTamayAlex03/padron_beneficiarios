@@ -13,7 +13,8 @@ class Municipio extends Model
 
     protected $fillable = [
         'descripcion',
-        'estado_id'
+        'estado_id',
+        'region'
     ];
 
     protected $casts = [

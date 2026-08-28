@@ -107,13 +107,10 @@
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-4 mb-3">
-                                        <label for="folio" class="form-label">Folio </label>
-                                        <input type="text" class="form-control" id="folio" name="folio"
-                                            value="{{ $estudio->folio }}" readonly>
-                                        <div class="form-text">El folio no se puede modificar</div>
-                                        @error('folio')
-                                        <div class="text-danger small">{{ $message }}</div>
-                                        @enderror
+                                        <label class="form-label">Folio</label>
+                                        <div class="form-control bg-light" style="min-height: 38px; display: flex; align-items: center;">
+                                            <strong>{{ $estudio->folio ?? 'No especificado' }}</strong>
+                                        </div>
                                     </div>
 
                                     <div class="col-md-4 mb-3">
@@ -126,19 +123,15 @@
                                     </div>
 
                                     <div class="col-md-4 mb-3">
-                                        <label for="region_id" class="form-label">Región *</label>
-                                        <select class="form-select" id="region_id" name="region_id">
-                                            <option value="">Seleccionar región...</option>
-                                            @foreach($regiones as $region)
-                                            <option value="{{ $region->id }}"
-                                                {{ $estudio->region_id == $region->id ? 'selected' : '' }}>
-                                                {{ $region->nombre_region }}
-                                            </option>
-                                            @endforeach
-                                        </select>
-                                        @error('region_id')
-                                        <div class="text-danger small">{{ $message }}</div>
-                                        @enderror
+                                        <label class="form-label">Municipio y Región</label>
+                                        <div class="form-control bg-light" style="min-height: 38px; display: flex; align-items: center;">
+                                            <strong>
+                                                {{ $estudio->municipio->descripcion ?? 'No especificado' }}
+                                                <span class="badge bg-primary ms-2">
+                                                    Región {{ $estudio->region ?? 'N/A' }}
+                                                </span>
+                                            </strong>
+                                        </div>
                                     </div>
 
                                     <div class="col-md-6 mb-3">
@@ -214,15 +207,11 @@
                             </li>
                         </ul>
 
-                        <!-- CONTENIDO DE LOS PASOS DENTRO DEL MISMO FORMULARIO -->
                         <div class="tab-content" id="estudioTabsContent">
-                            <!-- PASO 1: Integrantes del hogar -->
                             @include('estudios.paginas.estudio_paso1')
             
-                            <!-- PASO 2: Evaluación Economica y Familiar -->
                             @include('estudios.paginas.estudio_paso2')
 
-                            <!-- PASO 3: Necesidades y Observaciones -->
                             @include('estudios.paginas.estudio_paso3')
                         </div>
                     </form>
@@ -242,10 +231,6 @@
 @include('estudios.familiares-modals.delete', ['familiar' => $familiar])
 @endforeach
 
-<!-- MODALES DE INTEGRANTES DEL HOGAR FUERA DEL FORMULARIO -->
-@include('estudios.integrantes-hogar-modals.create-modal')
-@include('estudios.integrantes-hogar-modals.edit-modal')
-@include('estudios.integrantes-hogar-modals.delete-modal')
 @endcan
 
 <style>
@@ -346,7 +331,6 @@
                     option.value = tipo.id;
                     option.textContent = tipo.nombre_tipo_programa || tipo.nombre || 'Sin nombre';
 
-                    // Seleccionar si coincide con el tipo guardado
                     if (tipoSeleccionado && parseInt(tipoSeleccionado) === parseInt(tipo.id)) {
                         option.selected = true;
                         console.log('Tipo seleccionado:', tipo.id);
@@ -357,7 +341,6 @@
 
                 tipoProgramaSelect.disabled = false;
 
-                // Si no se seleccionó automáticamente, intentar seleccionar por el valor del estudio
                 if (tipoSeleccionado && !tipoProgramaSelect.value) {
                     setTimeout(() => {
                         tipoProgramaSelect.value = tipoSeleccionado;
@@ -371,27 +354,22 @@
             }
         }
 
-        // INICIALIZACIÓN AUTOMÁTICA AL CARGAR LA PÁGINA
         console.log('Inicializando formulario de edición...');
         console.log('Estudio programa_id:', '{{ $estudio->programa_id }}');
         console.log('Estudio tipo_programa_id:', '{{ $estudio->tipo_programa_id }}');
 
-        // Establecer el programa y cargar sus tipos inmediatamente
         if ('{{ $estudio->programa_id }}') {
             programaSelect.value = '{{ $estudio->programa_id }}';
             console.log('Programa establecido:', programaSelect.value);
 
-            // Cargar tipos inmediatamente
             cargarTiposPrograma('{{ $estudio->programa_id }}', '{{ $estudio->tipo_programa_id }}');
         }
 
-        // Event listener para cambios en programa
         programaSelect.addEventListener('change', function() {
             console.log('Programa cambiado:', this.value);
             cargarTiposPrograma(this.value);
         });
 
-        // Verificar después de un breve tiempo si se cargó correctamente
         setTimeout(() => {
             if (tipoProgramaSelect.value !== '{{ $estudio->tipo_programa_id }}' && '{{ $estudio->tipo_programa_id }}') {
                 console.log('Reintentando establecer tipo_programa_id...');

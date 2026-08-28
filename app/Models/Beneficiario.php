@@ -54,31 +54,26 @@ class Beneficiario extends Model
     ];
 
 
-    // Relación conn estudios socioeconómicos
     public function estudiosSocioeconomicos()
     {
         return $this->hasMany(EstudioSocioeconomico::class, 'beneficiario_id');
     }
 
-    // Relación con el estado de residencia
     public function estado()
     {
         return $this->belongsTo(Estado::class, 'estado_id', 'id_estado');
     }
 
-    // Relación con el estado de la vivienda
     public function estadoViv()
     {
         return $this->belongsTo(Estado::class, 'estado_viv_id', 'id_estado');
     }
 
-    // Relación con el municipio
     public function municipio()
     {
         return $this->belongsTo(Municipio::class, 'municipio_id');
     }
 
-    // Relación con la ocupación
     public function ocupacion()
     {
         return $this->belongsTo(Ocupacion::class, 'ocupacion_id');
@@ -106,5 +101,30 @@ class Beneficiario extends Model
         $vinculados = $this->estudiosVinculados->map->estudio;
 
         return $propios->merge($vinculados);
+    }
+
+    public function getUltimoEstudioFecha()
+    {
+        $fechas = collect();
+
+        // Obtener fechas de estudios propios
+        foreach ($this->estudiosSocioeconomicos as $estudio) {
+            if ($estudio->created_at) {
+                $fechas->push($estudio->created_at);
+            }
+        }
+
+        // Obtener fechas de estudios vinculados
+        foreach ($this->estudiosVinculados as $vinculado) {
+            if ($vinculado->estudio && $vinculado->estudio->created_at) {
+                $fechas->push($vinculado->estudio->created_at);
+            }
+        }
+
+        if ($fechas->isEmpty()) {
+            return null;
+        }
+
+        return $fechas->max();
     }
 }

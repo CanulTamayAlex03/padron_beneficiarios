@@ -1,20 +1,20 @@
 @if(isset($estudio) && $estudio->res_estudio_1 && $estudio->res_estudio_2 && $estudio->res_estudio_3)
 @php
-    // Función auxiliar para definir color según el nivel
-    function colorResultado($valor) {
-        switch (strtolower($valor)) {
-            case 'leve':
-                return 'text-success';
-            case 'moderada':
-                return 'text-warning';
-            case 'severa':
-                return 'text-danger';
-            default:
-                return 'text-secondary';
+    if (!function_exists('colorResultado')) {
+        function colorResultado($valor) {
+            switch (strtolower($valor)) {
+                case 'leve':
+                    return 'text-success';
+                case 'moderada':
+                    return 'text-warning';
+                case 'severa':
+                    return 'text-danger';
+                default:
+                    return 'text-secondary';
+            }
         }
     }
 
-    // Calcular puntos
     $puntosEstudios = [
         'Leve' => 1,
         'Moderada' => 2,
@@ -80,7 +80,6 @@
             $textoEstudio3 = 'Seguridad';
         }
     } else {
-        // Se usó el resumen de Solo Adultos (máximo 6 puntos)
         $camposBloque1 = [
             'preocupa_sin_alimentos', 'alimentos_no_alcanzaron', 'dieta_poco_variada_adultos',
             'adultos_comieron_menos', 'adultos_hambre_sin_comer', 'adultos_dejaron_comer_dia'
@@ -91,7 +90,6 @@
             $puntosBloque1 += $estudio->$campo ? 1 : 0;
         }
         
-        // Convertir a escala de 1-3 puntos para el estudio 3
         if ($puntosBloque1 >= 5) {
             $puntosEstudio3 = 3; // Severa
             $textoEstudio3 = 'Severa';

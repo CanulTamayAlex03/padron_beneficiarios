@@ -94,6 +94,10 @@ class BeneficiarioController extends Controller
         $estados = Estado::orderBy('nombre')->get();
         $municipios = Municipio::orderBy('descripcion')->get();
 
+        $beneficiarios->each(function ($beneficiario) {
+        $beneficiario->ultimo_estudio_fecha = $beneficiario->getUltimoEstudioFecha();
+        });
+
         return view('beneficiarios', compact('beneficiarios', 'ocupaciones', 'estados', 'municipios', 'programas'));
     }
 

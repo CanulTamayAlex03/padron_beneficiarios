@@ -114,7 +114,12 @@
                 @endphp
                 <label class="form-label fw-bold">
                     ¿El hogar se encuentra debajo de la línea del Bienestar según la corte de {{ $fechaFormateada }}, CONEVAL?
-                </label>
+                </label><br>
+                <small><span>
+                    <i class="bi bi-geo-alt me-1"></i>
+                    {{ $beneficiario->municipio->descripcion ?? 'Municipio no registrado' }}
+                    , {{ $beneficiario->estadoViv->nombre ?? ($beneficiario->estado->nombre ?? 'Estado no registrado') }}
+                </span></small>
                 <input type="hidden" name="linea_coneval_id" id="linea_coneval_id" value="{{ $estudio->linea_coneval_id ?? '' }}">
                 <input type="hidden" name="coneval_active" id="coneval_active" value="{{ $estudio->coneval_active ?? '' }}">
 

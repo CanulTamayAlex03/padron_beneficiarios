@@ -252,10 +252,9 @@ public function update(Request $request, EstudioSocioeconomico $estudio)
         $estudio->update($datosActualizados);
         $estudio->load('beneficiario');
 
-        return redirect()->route('beneficiarios.estudios.editar', [
-            'beneficiario' => $estudio->beneficiario_id,
-            'estudio' => $estudio->id
-        ])->with('success', 'Estudio socioeconómico actualizado exitosamente.');
+        return redirect()->route('beneficiarios')
+            ->with('success', 'Estudio socioeconómico actualizado exitosamente.')
+            ->with('abrir_resultados', $estudio->beneficiario_id);
 
     } catch (\Illuminate\Validation\ValidationException $e) {
         Log::error('ERROR DE VALIDACIÓN:', $e->errors());

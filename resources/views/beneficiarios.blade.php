@@ -116,8 +116,8 @@
 
                                 @php
 
-                                $ultimoEstudio = $beneficiario->ultimo_estudio_fecha ?? $beneficiario->getUltimoEstudioFecha();
-                                $fechaUltimoEstudio = $ultimoEstudio ? $ultimoEstudio->format('d/m/Y') : 'Sin estudios';
+                                $ultimoEstudio = $beneficiario->ultimo_estudio ?? $beneficiario->getUltimoEstudio();
+                                $fechaUltimoEstudio = $ultimoEstudio ? $ultimoEstudio->created_at->format('d/m/Y') : 'Sin estudios';
 
                                 $estudiosPropios = $beneficiario->estudiosSocioeconomicos->count();
                                 $estudiosVinculados = $beneficiario->estudiosVinculados->count();
@@ -181,12 +181,18 @@
                                     </td>
                                     <td>{{ $beneficiario->municipio->region }} - {{ $beneficiario->municipio->descripcion }}</td>
                                     <td>
-                                            @if($ultimoEstudio)
-                                                <small><span>{{ $fechaUltimoEstudio }}</span></small>
-                                            @else
-                                                <small><span>Sin estudios</span></small>
-                                            @endif
-                                        </td>
+                                        @if($ultimoEstudio)        
+                                                <span>{{ $fechaUltimoEstudio }}</span>
+                                                @if($ultimoEstudio->folio)
+                                                    <br>
+                                                    <span class="text-muted" style="font-size: 0.75rem;">
+                                                        Folio: {{ $ultimoEstudio->folio }}
+                                                    </span>
+                                                @endif
+                                        @else
+                                            <small><span>Sin estudios</span></small>
+                                        @endif
+                                    </td>
                                         <td>
                                         @php
                                             $programasNombres = [];
@@ -476,55 +482,52 @@
 @include('scripts.select-estudios')
 
 
-<!--
 @if(session('abrir_resultados'))
 <script>
 (function() {
     const beneficiarioId = "{{ session('abrir_resultados') }}";
-    console.log("Intentando abrir modal automáticamente para beneficiario:", beneficiarioId);
 
-    // Función que abrirá el modal si el botón aún no está disponible
     async function abrirModalAutomatico(id) {
         try {
             const res = await fetch(`/beneficiarios/${id}/resultados`, {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
             });
-            if (!res.ok) throw new Error('HTTP ' + res.status);
+
+            if (!res.ok) {
+                throw new Error('HTTP ' + res.status);
+            }
 
             const html = await res.text();
+
             const cont = document.getElementById('contenidoResultados');
-            if (!cont) return console.warn('No existe #contenidoResultados en el DOM');
+            if (!cont) {
+                console.warn('No existe #contenidoResultados');
+                return;
+            }
+
             cont.innerHTML = html;
 
             const modalEl = document.getElementById('resultadosEstudiosModal');
-            if (!modalEl) return console.warn(' No existe #resultadosEstudiosModal');
-            const modal = new bootstrap.Modal(modalEl);
+            if (!modalEl) {
+                console.warn('No existe #resultadosEstudiosModal');
+                return;
+            }
+
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
             modal.show();
 
-            console.log('Modal abierto automáticamente');
         } catch (err) {
-            console.error(' Error al abrir modal automáticamente:', err);
+            console.error('Error al abrir modal de resultados:', err);
         }
     }
 
-    // Intentos repetidos hasta que aparezca el botón
-    let tries = 0;
-    const maxTries = 10;
-    const interval = setInterval(() => {
-        tries++;
-        const boton = document.querySelector(`.view-resultados-btn[data-beneficiario-id="${beneficiarioId}"]`);
-        if (boton) {
-            console.log('Botón encontrado, simulando clic');
-            boton.click(); // usa el mismo flujo que ya funciona
-            clearInterval(interval);
-        } else if (tries >= maxTries) {
-            console.warn('No se encontró el botón, cargando manualmente');
-            clearInterval(interval);
-            abrirModalAutomatico(beneficiarioId);
-        }
-    }, 500);
+    document.addEventListener('DOMContentLoaded', function () {
+        abrirModalAutomatico(beneficiarioId);
+    });
 })();
 </script>
-@endif -->
+@endif
 
 @endsection

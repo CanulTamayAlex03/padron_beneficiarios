@@ -14,6 +14,11 @@
                             <i class="bi bi-clipboard-data me-2"></i>
                             Nuevo Estudio Socioeconómico
                         </h3>
+                        @can('boton volver')
+                        <a href="{{ route('beneficiarios') }}" class="btn btn-light btn-sm">
+                            <i class="bi bi-arrow-left"></i> Volver
+                        </a>
+                        @endcan
                     </div>
                 </div>
                 <div class="card-body">
@@ -168,8 +173,7 @@
                                 </div>
                             </div>
                             <div class="d-flex justify-content-end pe-3 pb-3">
-                                <button type="submit" class="btn btn-success"
-                                    onclick="return confirm('¿Deseas guardar los datos iniciales del estudio socioeconómico?')">
+                                <button type="submit" class="btn btn-success">
                                     <i class="bi bi-save"></i> Guardar Datos Principales
                                 </button>
                             </div>

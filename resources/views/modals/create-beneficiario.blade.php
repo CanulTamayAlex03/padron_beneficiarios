@@ -545,6 +545,18 @@ document.addEventListener('DOMContentLoaded', function() {
             dropdownParent: $('#createBeneficiarioModal')
         });
 
+        $('#create_estado_id').on('select2:open', function() {
+            document.querySelector('.select2-container--open .select2-search__field')?.focus();
+        });
+
+        $('#create_municipio_id').on('select2:open', function() {
+            document.querySelector('.select2-container--open .select2-search__field')?.focus();
+        });
+
+        $('#create_localidad_select').on('select2:open', function() {
+            document.querySelector('.select2-container--open .select2-search__field')?.focus();
+        });
+
         const estadoDefault = '31';
         filtrarMunicipiosCreacion(estadoDefault);
         

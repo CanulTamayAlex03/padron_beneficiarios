@@ -103,28 +103,29 @@ class Beneficiario extends Model
         return $propios->merge($vinculados);
     }
 
-    public function getUltimoEstudioFecha()
+    public function getUltimoEstudio()
     {
-        $fechas = collect();
+        $estudios = collect();
 
-        // Obtener fechas de estudios propios
         foreach ($this->estudiosSocioeconomicos as $estudio) {
-            if ($estudio->created_at) {
-                $fechas->push($estudio->created_at);
-            }
+            $estudios->push($estudio);
         }
 
-        // Obtener fechas de estudios vinculados
         foreach ($this->estudiosVinculados as $vinculado) {
-            if ($vinculado->estudio && $vinculado->estudio->created_at) {
-                $fechas->push($vinculado->estudio->created_at);
+            if ($vinculado->estudio) {
+                $estudios->push($vinculado->estudio);
             }
         }
 
-        if ($fechas->isEmpty()) {
+        if ($estudios->isEmpty()) {
             return null;
         }
+        return $estudios->sortByDesc('created_at')->first();
+    }
 
-        return $fechas->max();
+    public function getUltimoEstudioFecha()
+    {
+        $estudio = $this->getUltimoEstudio();
+        return $estudio ? $estudio->created_at : null;
     }
 }

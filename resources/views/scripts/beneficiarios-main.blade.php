@@ -4,7 +4,6 @@
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 'test-token';
         console.log('Script de beneficiarios cargado');
 
-        // Variables globales
         window.curpValida = true;
         window.curpCoincide = true;
         window.curpCheckInProgress = false;
@@ -12,13 +11,11 @@
         window.ultimoBeneficiarioCreado = null;
         window.estudioSocioeconomicoUrl = '/estudios/create';
 
-        /* ---------- Inicializar tooltips (Bootstrap 5) ---------- */
         (function initTooltips() {
             const triggers = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
             triggers.forEach(el => new bootstrap.Tooltip(el));
         })();
 
-        /* ---------- FUNCION de manejo de respuestas JSON ---------- */
         window.handleJsonResponse = async function(response) {
             const contentType = response.headers.get('content-type') || '';
             const isJson = contentType.includes('application/json');
@@ -31,7 +28,6 @@
                 };
             }
 
-            // 422 -> validación
             if (response.status === 422 && payload && payload.errors) {
                 const messages = [];
                 Object.values(payload.errors).forEach(arr => messages.push(...arr));
@@ -42,7 +38,6 @@
                 };
             }
 
-            // Otros errores con mensaje
             const message = payload && (payload.message || payload.error) ? (payload.message || payload.error) : (`Error ${response.status}`);
             return {
                 ok: false,
@@ -51,7 +46,6 @@
             };
         }
 
-        /* ---------- Función para mostrar alertas ---------- */
         window.showAlert = function(message, type = 'success', prependTo = '.card .card-body') {
             const container = document.querySelector(prependTo) || document.querySelector('body');
             const wrapper = document.createElement('div');
@@ -76,7 +70,6 @@
             }, 5000);
         }
 
-        /* ---------- Función para actualizar el estado del botón de envío ---------- */
         window.actualizarEstadoBoton = function() {
             const submitBtn = document.getElementById('submit-btn');
 
@@ -87,7 +80,6 @@
             }
         }
 
-        /* ---------- Función para calcular edad ---------- */
         window.calcularEdad = function(fechaNacimiento) {
             const hoy = new Date();
             const nacimiento = new Date(fechaNacimiento);
@@ -102,25 +94,20 @@
             return edad;
         }
 
-        // Limpiar validación al cerrar el modal
         const createModal = document.getElementById('createBeneficiarioModal');
         if (createModal) {
             createModal.addEventListener('hidden.bs.modal', function() {
-                // Limpiar validación de CURP
                 document.getElementById('curp-error').classList.add('d-none');
                 document.getElementById('curp-confirm-error').classList.add('d-none');
                 window.curpValida = true;
                 window.curpCoincide = true;
 
-                // Limpiar errores de campos
                 const errorElements = document.querySelectorAll('#createBeneficiarioModal .field-error');
                 errorElements.forEach(el => el.remove());
 
-                // Remover clases de error
                 const invalidFields = document.querySelectorAll('#createBeneficiarioModal .is-invalid');
                 invalidFields.forEach(field => field.classList.remove('is-invalid'));
 
-                // Limpiar mensaje de error general
                 const generalError = document.getElementById('modal-general-error');
                 if (generalError) {
                     generalError.classList.add('d-none');

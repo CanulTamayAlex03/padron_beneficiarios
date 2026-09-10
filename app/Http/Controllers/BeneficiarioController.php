@@ -20,11 +20,17 @@ class BeneficiarioController extends Controller
 {
     public function index(Request $request)
     {
+        $regiones = Municipio::where('estado_id', 31)
+            ->whereNotNull('region')
+            ->distinct()
+            ->orderBy('region')
+            ->pluck('region');
+
         $programas = Programa::with('tiposPrograma')->get();
 
         $query = Beneficiario::query()->with(['estudiosSocioeconomicos.programa', 'estudiosVinculados.estudio.programa', 'estado', 'ocupacion']);
 
-        if ($request->hasAny(['nombre_completo', 'curp', 'programa_id', 'tipo_programa_id', 'con_estudios'])) {
+        if ($request->hasAny(['nombre_completo', 'curp', 'programa_id', 'tipo_programa_id', 'con_estudios', 'region'])) {
 
             $exactMatch = $request->boolean('exact_match');
 
@@ -79,6 +85,12 @@ class BeneficiarioController extends Controller
                     $query->doesntHave('estudiosSocioeconomicos');
                 }
             }
+            if ($request->filled('region')) {
+                $query->whereHas('municipio', function ($q) use ($request) {
+                    $q->where('region', $request->region)
+                        ->where('estado_id', 31);
+                });
+            }
         }
 
         $query->orderBy('id', 'desc');
@@ -95,10 +107,10 @@ class BeneficiarioController extends Controller
         $municipios = Municipio::orderBy('descripcion')->get();
 
         $beneficiarios->each(function ($beneficiario) {
-        $beneficiario->ultimo_estudio_fecha = $beneficiario->getUltimoEstudioFecha();
+            $beneficiario->ultimo_estudio = $beneficiario->getUltimoEstudio();
         });
 
-        return view('beneficiarios', compact('beneficiarios', 'ocupaciones', 'estados', 'municipios', 'programas'));
+        return view('beneficiarios', compact('beneficiarios', 'ocupaciones', 'estados', 'municipios', 'programas', 'regiones'));
     }
 
     public function store(Request $request)

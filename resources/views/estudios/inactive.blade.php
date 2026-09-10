@@ -14,9 +14,11 @@
                             <i class="bi bi-clipboard-data me-2"></i>
                             Editar Estudio Socioeconómico
                         </h3>
+                        @can('boton volver')
                         <a href="{{ route('beneficiarios') }}" class="btn btn-light btn-sm">
                             <i class="bi bi-arrow-left"></i> Volver
                         </a>
+                        @endcan
                     </div>
                 </div>
 

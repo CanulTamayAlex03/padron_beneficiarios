@@ -14,9 +14,11 @@
                             <i class="bi bi-clipboard-data me-2"></i>
                             Editar Estudio Socioeconómico
                         </h3>
+                        @can('boton volver')
                         <a href="{{ route('beneficiarios') }}" class="btn btn-light btn-sm">
                             <i class="bi bi-arrow-left"></i> Volver
                         </a>
+                        @endcan
                     </div>
                 </div>
 
@@ -97,11 +99,12 @@
                                             @endforeach
                                         </select>
                                     </div>
-
+                                    @can('nuevo estudio en editar')
                                     <a href="{{ route('estudios.create', $beneficiario->id) }}"
                                         class="btn btn-success btn-sm ms-2">
                                         <i class="bi bi-plus-circle"></i> Nuevo Estudio
                                     </a>
+                                    @endcan
                                 </div>
                             </div>
                             <div class="card-body">
@@ -378,14 +381,28 @@
         }, 500);
     });
 
-    function siguientePaso(paso) {
-        const nextTab = new bootstrap.Tab(document.getElementById(`paso${paso}-tab`));
-        nextTab.show();
+    function scrollAlInicioPaso(paso) {
+    const pasoElement = document.getElementById(`paso${paso}`);
+    if (pasoElement) {
+        const offset = 180;
+        const elementPosition = pasoElement.getBoundingClientRect().top + window.pageYOffset;
+        window.scrollTo({
+            top: elementPosition - offset,
+            behavior: 'smooth'
+        });
     }
+}
 
-    function anteriorPaso(paso) {
-        const prevTab = new bootstrap.Tab(document.getElementById(`paso${paso}-tab`));
-        prevTab.show();
-    }
+function siguientePaso(paso) {
+    const nextTab = new bootstrap.Tab(document.getElementById(`paso${paso}-tab`));
+    nextTab.show();
+    setTimeout(() => scrollAlInicioPaso(paso), 100);
+}
+
+function anteriorPaso(paso) {
+    const prevTab = new bootstrap.Tab(document.getElementById(`paso${paso}-tab`));
+    prevTab.show();
+    setTimeout(() => scrollAlInicioPaso(paso), 100);
+}
 </script>
 @endsection

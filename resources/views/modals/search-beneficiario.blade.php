@@ -38,7 +38,7 @@
 
                     <!-- Búsqueda por Programa y Tipo de Programa -->
                     <div class="row">
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
                             <label for="search_programa_id" class="form-label">
                                 <i class="bi bi-diagram-3 me-1"></i>Programa
                             </label>
@@ -54,7 +54,7 @@
                             </select>
                         </div>
                         
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
                             <label for="search_tipo_programa_id" class="form-label">
                                 <i class="bi bi-funnel me-1"></i>Tipo de Programa
                             </label>
@@ -76,6 +76,24 @@
                             </select>
                             <small class="text-muted">
                                 Seleccione primero un programa
+                            </small>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label for="search_region" class="form-label">
+                                <i class="bi bi-map me-1"></i>Región
+                            </label>
+                            <select class="form-select" id="search_region" name="region">
+                                <option value="">Todas las regiones</option>
+                                @foreach($regiones as $region)
+                                    <option value="{{ $region }}"
+                                        {{ request('region') == $region ? 'selected' : '' }}>
+                                        Región {{ $region }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <small class="text-muted">
+                                Solo aplica a municipios de Yucatán
                             </small>
                         </div>
                     </div>

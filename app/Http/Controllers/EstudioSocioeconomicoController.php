@@ -48,6 +48,8 @@ class EstudioSocioeconomicoController extends Controller
         $escolaridades = Escolaridad::all();
         $parentescos = Parentesco::all();
 
+        $tieneEstudios = $beneficiario->estudiosSocioeconomicos()->exists();
+
         return view('estudios.create', compact(
             'beneficiario',
             'estudio',
@@ -57,7 +59,8 @@ class EstudioSocioeconomicoController extends Controller
             'lineasConeval',
             'serviciosSalud',
             'escolaridades',
-            'parentescos'
+            'parentescos',
+            'tieneEstudios'
         ));
     }
 
@@ -182,6 +185,8 @@ class EstudioSocioeconomicoController extends Controller
 
         $parentescos = Parentesco::all();
 
+        $tieneEstudios = $beneficiario->estudiosSocioeconomicos()->exists();
+
         return view('beneficiarios.editar-completo', compact(
             'beneficiario',
             'estudio',
@@ -196,7 +201,8 @@ class EstudioSocioeconomicoController extends Controller
             'serviciosSalud',
             'escolaridades',
             'totalPersonas',
-            'parentescos'
+            'parentescos',
+            'tieneEstudios'
         ));
     }
 

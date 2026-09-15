@@ -16,7 +16,6 @@ class VinculacionEstudioController extends Controller
             'beneficiarioPrincipal'
         ]);
 
-        // Filtros SÍ necesarios
         if ($request->filled('folio')) {
             $query->whereHas('estudio', function ($q) use ($request) {
                 $q->where('folio', 'like', '%' . $request->folio . '%');

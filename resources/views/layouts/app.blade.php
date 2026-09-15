@@ -18,6 +18,9 @@
 
 <body>
     @auth
+    @php
+    $bloquearSidebar = isset($tieneEstudios) && !$tieneEstudios;
+    @endphp
     <div class="sidebar bg-dark text-white" id="sidebar">
         <div class="sidebar-header">
             <img src="{{ asset('images/logodif.jpg') }}" alt="Logo DIF" class="sidebar-logo">
@@ -28,6 +31,15 @@
                 </button>
             </div>
         </div>
+
+        @if($bloquearSidebar)
+        <div class="alert alert-warning mx-2 mt-2 small mb-0">
+            <i class="bi bi-lock-fill me-1"></i>
+            <strong>Navegación bloqueada</strong><br>
+            <span class="small">El beneficiario debe tener al menos un estudio socioecónmico</span>
+        </div>
+        @endif
+
         <ul class="nav flex-column px-2 pt-3">
 
             {{-- ================== BENEFICIARIOS ================== --}}
@@ -45,8 +57,8 @@
 
             @can('importar beneficiarios')
             <li class="nav-item mb-2">
-                <a class="nav-link text-white {{ request()->routeIs('administrador.importar_beneficiarios') ? 'active bg-secondary rounded' : '' }}" 
-                href="{{ route('administrador.importar_beneficiarios') }}">
+                <a class="nav-link text-white {{ request()->routeIs('administrador.importar_beneficiarios') ? 'active bg-secondary rounded' : '' }}"
+                    href="{{ route('administrador.importar_beneficiarios') }}">
                     <i class="bi bi-file-earmark-spreadsheet-fill me-2"></i>
                     <span class="nav-link-text">Importar</span>
                 </a>
@@ -96,10 +108,10 @@
             @endcan
             @can('ver vinculaciones estudios')
             <li class="nav-item mb-2">
-                <a class="nav-link text-white {{ request()->is('vinculaciones-estudios*') ? 'active bg-secondary rounded' : '' }}" 
-                href="{{ route('vinculaciones-estudios.index') }}">
-                <i class="bi bi-link-45deg me-2"></i>
-                <span class="nav-link-text">Vinculaciones</span>
+                <a class="nav-link text-white {{ request()->is('vinculaciones-estudios*') ? 'active bg-secondary rounded' : '' }}"
+                    href="{{ route('vinculaciones-estudios.index') }}">
+                    <i class="bi bi-link-45deg me-2"></i>
+                    <span class="nav-link-text">Vinculaciones</span>
                 </a>
             </li>
             @endcan
@@ -250,6 +262,25 @@
             });
         });
     </script>
+
+    @if($bloquearSidebar)
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.sidebar .nav-link').forEach(function(link) {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    if (typeof showAlert === 'function') {
+                        showAlert('Debe crear un estudio socioeconómico antes de salir de esta sección.', 'warning');
+                    } else {
+                        alert('Debe crear un estudio socioeconómico antes de salir de esta sección.');
+                    }
+                });
+            });
+        });
+    </script>
+    @endif
     @endauth
 
     @stack('scripts')

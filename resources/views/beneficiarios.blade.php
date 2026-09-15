@@ -243,7 +243,7 @@
                                                 @endif
                                             </span>
                                         @else
-                                            <span class="badge bg-secondary">0</span>
+                                            <span class="badge bg-warning">0</span>
                                         @endif
                                     </td>
                                     <td>
@@ -278,6 +278,7 @@
                                         </button>
                                         @endcan
 
+                                        <!--
                                         @if($tieneEstudiosCompletos)
                                         <button class="btn btn-sm btn-purple view-resultados-btn"
                                             data-beneficiario-id="{{ $beneficiario->id }}"
@@ -292,6 +293,7 @@
                                             <i class="bi bi-graph-up"></i>
                                         </button>
                                         @endif
+                                        -->
                                     </td>
                                 </tr>
                                 @empty

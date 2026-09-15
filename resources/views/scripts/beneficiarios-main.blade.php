@@ -2,7 +2,6 @@
     document.addEventListener('DOMContentLoaded', function() {
         const baseUrl = '/beneficiarios';
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 'test-token';
-        console.log('Script de beneficiarios cargado');
 
         window.curpValida = true;
         window.curpCoincide = true;

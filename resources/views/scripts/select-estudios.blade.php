@@ -3,12 +3,13 @@
         const modalEl = document.getElementById('selectEstudioModal');
         const modal = new bootstrap.Modal(modalEl);
 
-        // Cerrar modal correctamente
+        window.selectEstudioModalInstance = modal;
+        let beneficiarioActualId = null;
+
         modalEl.querySelectorAll('[data-bs-dismiss="modal"]').forEach(btn => {
             btn.addEventListener('click', () => modal.hide());
         });
 
-        // Abrir modal al hacer clic en botones
         document.querySelectorAll('.ver-estudios-existente-btn').forEach(button => {
             button.addEventListener('click', function() {
                 const beneficiarioId = this.getAttribute('data-beneficiario-id');
@@ -18,10 +19,10 @@
         });
 
         function cargarEstudiosBeneficiario(beneficiarioId, beneficiarioNombre) {
-    document.getElementById('beneficiario-nombre').textContent = beneficiarioNombre;
-    const tbody = document.querySelector('#estudios-table tbody');
+            beneficiarioActualId = beneficiarioId;
+            document.getElementById('beneficiario-nombre').textContent = beneficiarioNombre;
+            const tbody = document.querySelector('#estudios-table tbody');
 
-    // Limpiar tabla
     tbody.innerHTML = `
         <tr>
             <td colspan="5" class="text-center">
@@ -41,14 +42,11 @@
             return response.json();
         })
         .then(data => {
-            // Verificar si la respuesta tiene la estructura esperada
             if (data && data.estudios) {
                 mostrarEstudios(data.estudios);
             } else if (data && data.error) {
-                // Mostrar error del servidor
                 mostrarError(`Error del servidor: ${data.error}`);
             } else {
-                // Estructura inesperada
                 mostrarError('Respuesta inesperada del servidor');
             }
             modal.show();
@@ -63,7 +61,6 @@
         function mostrarEstudios(estudios) {
     const tbody = document.querySelector('#estudios-table tbody');
     
-    // VERIFICAR QUE estudios ES UN ARRAY
     if (!Array.isArray(estudios)) {
         console.error('estudios no es un array:', estudios);
         tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Error: Formato de datos incorrecto</td></tr>';
@@ -130,6 +127,28 @@
                         <i class="bi ${botonIcono}"></i> ${botonTexto}
                     </button>
                 @endcan
+
+                ${
+                    estadoEstudio.texto === 'Completo'
+                    ? `
+                        <button type="button"
+                                class="btn btn-sm btn-purple view-resultados-estudio-btn"
+                                data-estudio-id="${estudio.id}"
+                                data-bs-toggle="tooltip"
+                                title="Ver resultados completos">
+                            <i class="bi bi-graph-up"></i>
+                        </button>
+                    `
+                    : `
+                        <button type="button"
+                                class="btn btn-sm btn-purple"
+                                disabled
+                                data-bs-toggle="tooltip"
+                                title="Este estudio no está completo">
+                            <i class="bi bi-graph-up"></i>
+                        </button>
+                    `
+                }
             </td>
         `;
         tbody.appendChild(tr);

@@ -4,17 +4,14 @@
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 'test-token';
             console.log('Script de beneficiarios cargado');
 
-            // Variables para validación de CURP
             let curpValida = true;
             let curpCoincide = true;
             
-            // Función para validar formato de CURP
             window.validarCurp = function() {
                 const curpInput = document.getElementById('create_curp');
                 const curpError = document.getElementById('curp-error');
                 const curp = curpInput.value.trim();
                 
-                // Si está vacío, es válido (es opcional)
                 if (curp === '') {
                     curpError.classList.add('d-none');
                     curpValida = true;
@@ -22,7 +19,6 @@
                     return;
                 }
                 
-                // Validar longitud
                 if (curp.length !== 18) {
                     curpError.classList.remove('d-none');
                     curpValida = false;
@@ -31,7 +27,6 @@
                     curpValida = true;
                 }
                 
-                // Validar coincidencia si el campo de confirmación no está vacío
                 const curpConfirm = document.getElementById('create_curp_confirm').value.trim();
                 if (curpConfirm !== '') {
                     validarConfirmacionCurp();
@@ -40,7 +35,6 @@
                 actualizarEstadoBoton();
             }
             
-            // Función para validar que las CURP coincidan
             window.validarConfirmacionCurp = function() {
                 const curpInput = document.getElementById('create_curp');
                 const curpConfirmInput = document.getElementById('create_curp_confirm');
@@ -49,7 +43,6 @@
                 const curp = curpInput.value.trim();
                 const curpConfirm = curpConfirmInput.value.trim();
                 
-                // Si ambos están vacíos, es válido
                 if (curp === '' && curpConfirm === '') {
                     curpConfirmError.classList.add('d-none');
                     curpCoincide = true;
@@ -57,7 +50,6 @@
                     return;
                 }
                 
-                // Si uno está vacío y el otro no, mostrar error
                 if ((curp === '' && curpConfirm !== '') || (curp !== '' && curpConfirm === '')) {
                     curpConfirmError.classList.remove('d-none');
                     curpConfirmError.textContent = 'Ambos campos de CURP deben estar completos';
@@ -66,7 +58,6 @@
                     return;
                 }
                 
-                // Verificar coincidencia
                 if (curp !== curpConfirm) {
                     curpConfirmError.classList.remove('d-none');
                     curpConfirmError.textContent = 'Las CURP no coinciden';
@@ -79,7 +70,6 @@
                 actualizarEstadoBoton();
             }
             
-            // Función para actualizar el estado del botón de envío
             function actualizarEstadoBoton() {
                 const submitBtn = document.getElementById('submit-btn');
                 
@@ -90,7 +80,6 @@
                 }
             }
             
-            // Limpiar validación al cerrar el modal
             const createModal = document.getElementById('createBeneficiarioModal');
             if (createModal) {
                 createModal.addEventListener('hidden.bs.modal', function() {
@@ -108,7 +97,6 @@
                 const container = document.querySelector(prependTo) || document.querySelector('body');
                 const wrapper = document.createElement('div');
 
-                // Si message es array -> unir con <br>
                 const msgHtml = Array.isArray(message) ? message.join('<br>') : message;
 
                 wrapper.innerHTML = `
@@ -452,7 +440,6 @@
                                 const msg = result.data && result.data.message ? result.data.message : 'Beneficiario actualizado correctamente.';
                                 showAlert(msg, 'success');
 
-                                // Opcional: recargar para actualizar la tabla
                                 setTimeout(() => window.location.reload(), 900);
                             } else {
                                 if (result.status === 422) {
@@ -469,7 +456,6 @@
                 });
             }
 
-            /* ---------- Reset del formulario de edición al cerrar modal ---------- */
             const editModalEl = document.getElementById('editBeneficiarioModal');
             if (editModalEl) {
                 editModalEl.addEventListener('hidden.bs.modal', function() {

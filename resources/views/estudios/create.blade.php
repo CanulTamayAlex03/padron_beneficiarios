@@ -1,5 +1,5 @@
 @can('crear beneficiarios')
-@extends('layouts.app')
+@extends('layouts.app', ['tieneEstudios' => $tieneEstudios])
 
 @section('title', 'Crear Estudio Socioeconómico')
 
@@ -23,7 +23,6 @@
                 </div>
                 <div class="card-body">
                     
-                    <!-- Información del Beneficiario -->
                     <div class="alert alert-info mb-4">
                         <h5 class="alert-heading">
                             <i class="bi bi-person-circle me-2"></i>Datos del Beneficiario
@@ -190,7 +189,7 @@
 @include('estudios.familiares-modals.create')
 
 @foreach($beneficiario->familiares as $familiar)
-<!-- Incluir modales individuales -->
+
 @include('estudios.familiares-modals.edit', ['familiar' => $familiar])
 @include('estudios.familiares-modals.delete', ['familiar' => $familiar])
 @endforeach

@@ -1,5 +1,5 @@
 @can('editar beneficiarios')
-@extends('layouts.app')
+@extends('layouts.app', ['tieneEstudios' => $tieneEstudios])
 
 @section('title', 'Editar Estudio Socioeconómico')
 
